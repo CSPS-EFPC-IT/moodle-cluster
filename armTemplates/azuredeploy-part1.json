@@ -1,0 +1,974 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "projectName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the project. This string will be used to name all resources required."
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "The name of the location new resources will be created."
+            }
+        },
+        "environmentName": {
+            "type": "string",
+            "defaultValue": "dev",
+            "allowedValues": [
+                "dev",
+                "staging",
+                "prod"
+            ],
+            "metadata": {
+                "description": "The name of the provisioned environment. Used to build the service DNS name."
+            }
+        },
+        "resourceTags": {
+            "type": "object",
+            "metadata": {
+                "description": "Tags added to each resource created."
+            }
+        },
+        "virtualNetwork_addressBase": {
+            "type": "string",
+            "metadata": {
+                "description": "The virtual network IP address prefix."
+            }
+        },
+        "gatewaysslCertificatesUri": {
+            "type": "string",
+            "metadata": {
+                "description": "The URI of the SSL certificate to deploy in the Application Gateway."
+            }
+        },
+        "gatewayUserAssignedIdentity": {
+            "type": "object",
+            "metadata": {
+                "description": "The User Identity assigned to the Gateway."
+            }
+        },
+        "databaseAdminUsername": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The username to use to manage to the database server."
+            }
+        },
+        "databaseAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The password to use to manage to the database server."
+            }
+        }
+    },
+    "variables": {
+        "bastion_name": "[concat(parameters('projectName'), '-BH')]",
+        "bastion_publicIp_name": "[concat(parameters('projectName'), '-BH-PublicIP')]",
+        "bastion_subnet_addressPrefix": "[concat(parameters('virtualNetwork_addressBase'), '.128/27')]",
+        "bastion_subnet_name": "AzureBastionSubnet",
+        "bastion_networkSecurityGroup_name": "[concat(parameters('projectName'), '-BH-NSG')]",
+        "diagnostic_blobServices_name": "Default",
+        "diagnostic_storageAccount_name": "[tolower(concat(take(parameters('projectName'), 11), 'diag', take(parameters('environmentName'), 4), 'sa'))]",
+        "gateway_backendAddressPool_name": "moodle-vmss",
+        "gateway_backendHttpSettingsCollection_name": "moodle-HTTP-settings",
+        "gateway_frontendIPConfigurations_name": "appGwPublicFrontendIp",
+        "gateway_frontendPort_http_name": "http_port",
+        "gateway_frontendPort_https_name": "https_port",
+        "gateway_gatewayIPConfigurations_name": "appGatewayIpConfig",
+        "gateway_httpListeners_http_name": "HTTP-listener",
+        "gateway_httpListeners_https_name": "HTTPS-listener",
+        "gateway_name": "[concat(parameters('projectName'), '-GW')]",
+        "gateway_networkSecurityGroup_name": "[concat(parameters('projectName'), '-GW-NSG')]",
+        "gateway_publicIp_domainNameLabel": "[tolower(concat(parameters('projectName'), '-', parameters('environmentName')))]",
+        "gateway_publicIp_name": "[concat(parameters('projectName'), '-GW-PublicIP')]",
+        "gateway_redirectConfigurations_name": "http-redirect",
+        "gateway_requestRoutingRule_http_name": "http-rule",
+        "gateway_requestRoutingRule_https_name": "https-rule",
+        "gateway_sslCertificate_https_name": "HTTPS-certificate",
+        "gateway_subnet_addressPrefix": "[concat(parameters('virtualNetwork_addressBase'), '.0/27')]",
+        "gateway_subnet_name": "[concat(parameters('projectName'), '-GW-SN')]",
+        "moodle_fileService_name": "Default",
+        "moodle_share_name": "moodledata",
+        "moodle_storageAccount_name": "[tolower(concat(take(parameters('projectName'), 11), 'moodle', take(parameters('environmentName'), 4),'sa'))]",
+        "paz_networkSecurityGroup_name": "[concat(parameters('projectName'), '-PAZ-NSG')]",
+        "paz_subnet_addressPrefix": "[concat(parameters('virtualNetwork_addressBase'), '.32/27')]",
+        "paz_subnet_name": "[concat(parameters('projectName'), '-PAZ-SN')]",
+        "postgresql_name": "[concat(parameters('projectName'), '-', parameters('environmentName'), '-DB')]",
+        "postgresql_moodleDb_name": "moodle",
+        "redis_networkSecurityGroup_name": "[concat(parameters('projectName'), '-Redis-NSG')]",
+        "redis_subnet_addressPrefix": "[concat(parameters('virtualNetwork_addressBase'), '.96/27')]",
+        "redis_subnet_name": "[concat(parameters('projectName'), '-Redis-SN')]",
+        "redis_name": "[concat(parameters('projectName'), '-', parameters('environmentName'), '-Redis')]",
+        "virtualNetwork_addressPrefix": "[concat(parameters('virtualNetwork_addressBase'), '.0/24')]",
+        "virtualNetwork_name": "[concat(parameters('projectName'), '-VN')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "name": "[variables('diagnostic_storageAccount_name')]",
+            "tags": "[parameters('resourceTags')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(variables('diagnostic_storageAccount_name'), '/', variables('diagnostic_blobServices_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('diagnostic_storageAccount_name'))]"
+            ],
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                },
+                "deleteRetentionPolicy": {
+                    "enabled": false
+                }
+            }
+        },
+
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2019-11-01",
+            "name": "[variables('virtualNetwork_name')]",
+            "tags": "[parameters('resourceTags')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastion_networkSecurityGroup_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('gateway_networkSecurityGroup_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('paz_networkSecurityGroup_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('redis_networkSecurityGroup_name'))]"
+           ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('virtualNetwork_addressPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('bastion_subnet_name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('bastion_subnet_addressPrefix')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastion_networkSecurityGroup_name'))]"
+                            },
+                            "serviceEndpoints": [],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[variables('gateway_subnet_name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('gateway_subnet_addressPrefix')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('gateway_networkSecurityGroup_name'))]"
+                            },
+                            "serviceEndpoints": [],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[variables('paz_subnet_name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('paz_subnet_addressPrefix')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('paz_networkSecurityGroup_name'))]"
+                            },
+                            "serviceEndpoints": [
+                                {
+                                    "service": "Microsoft.Storage",
+                                    "locations": [
+                                        "[parameters('location')]"
+                                    ]
+                                },
+                                {
+                                    "service": "Microsoft.Sql",
+                                    "locations": [
+                                        "[parameters('location')]"
+                                    ]
+                                }
+                            ],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[variables('redis_subnet_name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('redis_subnet_addressPrefix')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('redis_networkSecurityGroup_name'))]"
+                            },
+                            "serviceEndpoints": [],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            }
+        },
+
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-11-01",
+            "name": "[variables('bastion_networkSecurityGroup_name')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('resourceTags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowPublicInternetInBound",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/bastion/bastion-nsg",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowAzureBastionControlPlaneInBound",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/bastion/bastion-nsg",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "GatewayManager",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowPublicEndpointsInAzureOutBound",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/bastion/bastion-nsg",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "AzureCloud",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowTargetVmsOutBound",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/bastion/bastion-nsg",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [
+                                "22",
+                                "3389"
+                            ],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2019-11-01",
+            "name": "[variables('bastion_publicIp_name')]",
+            "tags": "[parameters('resourceTags')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/bastionHosts",
+            "apiVersion": "2019-11-01",
+            "name": "[variables('bastion_name')]",
+            "tags": "[parameters('resourceTags')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('bastion_publicIp_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetwork_name'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "IpConf",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('bastion_publicIp_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetwork_name'), variables('bastion_subnet_name'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-11-01",
+            "name": "[variables('gateway_networkSecurityGroup_name')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('resourceTags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowPublicInternetInBound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [
+                                "80",
+                                "443"
+                            ],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowGatewayManagerInBound",
+                        "properties": {
+                            "description": "Voir https://docs.microsoft.com/en-us/azure/application-gateway/configuration-overview",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "65200-65535",
+                            "sourceAddressPrefix": "GatewayManager",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2019-11-01",
+            "name": "[variables('gateway_publicIp_name')]",
+            "tags": "[parameters('resourceTags')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 4,
+                "dnsSettings": {
+                    "domainNameLabel": "[variables('gateway_publicIp_domainNameLabel')]"
+                },
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/applicationGateways",
+            "apiVersion": "2019-11-01",
+            "name": "[variables('gateway_name')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('resourceTags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetwork_name'))]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('gateway_publicIp_name'))]"
+            ],
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": "[parameters('gatewayUserAssignedIdentity')]"
+            },
+            "properties": {
+                "sku": {
+                    "name": "Standard_v2",
+                    "tier": "Standard_v2"
+                },
+                "gatewayIPConfigurations": [
+                    {
+                        "name": "[variables('gateway_gatewayIPConfigurations_name')]",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetwork_name'), variables('gateway_subnet_name'))]"
+                            }
+                        }
+                    }
+                ],
+                "frontendIPConfigurations": [
+                    {
+                        "name": "[variables('gateway_frontendIPConfigurations_name')]",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('gateway_publicIp_name'))]"
+                            }
+                        }
+                    }
+                ],
+                "frontendPorts": [
+                    {
+                        "name": "[variables('gateway_frontendPort_http_name')]",
+                        "properties": {
+                            "port": 80
+                        }
+                    },
+                    {
+                        "name": "[variables('gateway_frontendPort_https_name')]",
+                        "properties": {
+                            "port": 443
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[variables('gateway_backendAddressPool_name')]",
+                        "properties": {
+                            "backendAddresses": []
+                        }
+                    }
+                ],
+                "backendHttpSettingsCollection": [
+                    {
+                        "name": "[variables('gateway_backendHttpSettingsCollection_name')]",
+                        "properties": {
+                            "port": 80,
+                            "protocol": "Http",
+                            "cookieBasedAffinity": "Disabled",
+                            "pickHostNameFromBackendAddress": false,
+                            "requestTimeout": 60
+                        }
+                    }
+                ],
+                "sslCertificates": [
+                    {
+                        "name": "[variables('gateway_sslCertificate_https_name')]",
+                        "properties": {
+                            "keyVaultSecretId": "[parameters('gatewaysslCertificatesUri')]"
+                        }
+                    }
+                ],
+                "httpListeners": [
+                    {
+                        "name": "[variables('gateway_httpListeners_https_name')]",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gateway_name')), '/frontendIPConfigurations/', variables('gateway_frontendIPConfigurations_name'))]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gateway_name')), '/frontendPorts/', variables('gateway_frontendPort_https_name'))]"
+                            },
+                            "protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gateway_name')), '/sslCertificates/', variables('gateway_sslCertificate_https_name'))]"
+                            },
+                            "hostNames": [],
+                            "requireServerNameIndication": false
+                        }
+                    },
+                    {
+                        "name": "[variables('gateway_httpListeners_http_name')]",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gateway_name')), '/frontendIPConfigurations/', variables('gateway_frontendIPConfigurations_name'))]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gateway_name')), '/frontendPorts/', variables('gateway_frontendPort_http_name'))]"
+                            },
+                            "protocol": "Http",
+                            "hostNames": [],
+                            "requireServerNameIndication": false
+                        }
+                    }
+                ],
+                "urlPathMaps": [],
+                "requestRoutingRules": [
+                    {
+                        "name": "[variables('gateway_requestRoutingRule_https_name')]",
+                        "properties": {
+                            "ruleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gateway_name')), '/httpListeners/', variables('gateway_httpListeners_https_name'))]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gateway_name')), '/backendAddressPools/', variables('gateway_backendAddressPool_name'))]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gateway_name')), '/backendHttpSettingsCollection/', variables('gateway_backendHttpSettingsCollection_name'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('gateway_requestRoutingRule_http_name')]",
+                        "properties": {
+                            "ruleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gateway_name')), '/httpListeners/', variables('gateway_httpListeners_http_name'))]"
+                            },
+                            "redirectConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gateway_name')), '/redirectConfigurations/', variables('gateway_redirectConfigurations_name'))]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [],
+                "rewriteRuleSets": [],
+                "redirectConfigurations": [
+                    {
+                        "name": "[variables('gateway_redirectConfigurations_name')]",
+                        "properties": {
+                            "redirectType": "Permanent",
+                            "targetListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gateway_name')), '/httpListeners/', variables('gateway_httpListeners_https_name'))]"
+                            },
+                            "includePath": true,
+                            "includeQueryString": true,
+                            "requestRoutingRules": [
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gateway_name')), '/requestRoutingRules/', variables('gateway_requestRoutingRule_http_name'))]"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "sslPolicy": {
+                    "policyType": "Custom",
+                    "minProtocolVersion": "TLSv1_2",
+                    "cipherSuites": [
+                        "TLS_RSA_WITH_AES_256_CBC_SHA256",
+                        "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384",
+                        "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+                        "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+                        "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+                        "TLS_RSA_WITH_AES_128_GCM_SHA256",
+                        "TLS_RSA_WITH_AES_128_CBC_SHA256"
+                    ]
+                },
+                "enableHttp2": false,
+                "autoscaleConfiguration": {
+                    "minCapacity": 1,
+                    "maxCapacity": 10
+                }
+            }
+        },
+
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-11-01",
+            "name": "[variables('paz_networkSecurityGroup_name')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('resourceTags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowApplicationGatewayInbound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "[variables('gateway_subnet_addressPrefix')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [
+                                "80"
+                            ],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowBastionInBound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "[variables('bastion_subnet_addressPrefix')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "name": "[variables('moodle_storageAccount_name')]",
+            "tags": "[parameters('resourceTags')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetwork_name'))]"
+            ],
+            "sku": {
+                "name": "Premium_LRS",
+                "tier": "Premium"
+            },
+            "kind": "FileStorage",
+            "properties": {
+                "largeFileSharesState": "Enabled",
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetwork_name'), variables('paz_subnet_name'))]",
+                            "action": "Allow",
+                            "state": "Succeeded"
+                        }
+                    ],
+                    "ipRules": [
+                        {
+                            "value": "198.103.180.1/24",
+                            "action": "Allow"
+                        }
+                    ],
+                    "defaultAction": "Deny"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "keyType": "Account",
+                            "enabled": true
+                        },
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(variables('moodle_storageAccount_name'), '/', variables('moodle_fileService_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('moodle_storageAccount_name'))]"
+            ],
+            "sku": {
+                "name": "Premium_LRS",
+                "tier": "Premium"
+            },
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(variables('moodle_storageAccount_name'), '/', variables('moodle_fileService_name'), '/', variables('moodle_share_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/fileServices', variables('moodle_storageAccount_name'), variables('moodle_fileService_name'))]"
+            ],
+            "properties": {
+                "shareQuota": 1024
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/servers",
+            "apiVersion": "2017-12-01",
+            "name": "[variables('postgresql_name')]",
+            "tags": "[parameters('resourceTags')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "GP_Gen5_4",
+                "tier": "GeneralPurpose",
+                "family": "Gen5",
+                "capacity": 4
+            },
+            "properties": {
+                "storageProfile": {
+                    "storageMB": 102400,
+                    "backupRetentionDays": 7,
+                    "geoRedundantBackup": "Disabled",
+                    "storageAutogrow": "Enabled"
+                },
+                "version": "10",
+                "sslEnforcement": "Enabled",
+                "createMode": "Default",
+                "administratorLogin": "[parameters('databaseAdminUsername')]",
+                "administratorLoginPassword": "[parameters('databaseAdminPassword')]"
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(variables('postgresql_name'), '/azure.replication_support')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('postgresql_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "user-override"
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(variables('postgresql_name'), '/pg_qs.query_capture_mode')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('postgresql_name'))]"
+            ],
+            "properties": {
+                "value": "ALL",
+                "source": "user-override"
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(variables('postgresql_name'), '/pgms_wait_sampling.query_capture_mode')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('postgresql_name'))]"
+            ],
+            "properties": {
+                "value": "ALL",
+                "source": "user-override"
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/servers/databases",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(variables('postgresql_name'), '/azure_maintenance')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('postgresql_name'))]"
+            ],
+            "properties": {
+                "charset": "UTF8",
+                "collation": "English_United States.1252"
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/servers/databases",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(variables('postgresql_name'), '/azure_sys')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('postgresql_name'))]"
+            ],
+            "properties": {
+                "charset": "UTF8",
+                "collation": "English_United States.1252"
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/servers/databases",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(variables('postgresql_name'), '/', variables('postgresql_moodleDb_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('postgresql_name'))]"
+            ],
+            "properties": {
+                "charset": "UTF8",
+                "collation": "English_United States.1252"
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/servers/databases",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(variables('postgresql_name'), '/postgres')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('postgresql_name'))]"
+            ],
+            "properties": {
+                "charset": "UTF8",
+                "collation": "English_United States.1252"
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/servers/virtualNetworkRules",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(variables('postgresql_name'), '/', variables('paz_subnet_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('postgresql_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetwork_name'))]"
+            ],
+            "properties": {
+                "virtualNetworkSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetwork_name'), variables('paz_subnet_name'))]",
+                "ignoreMissingVnetServiceEndpoint": false
+            }
+        },
+
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-11-01",
+            "name": "[variables('redis_networkSecurityGroup_name')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('resourceTags')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "type": "Microsoft.Cache/Redis",
+            "apiVersion": "2019-07-01",
+            "name": "[variables('redis_name')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('resourceTags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetwork_name'))]"
+            ],
+            "properties": {
+                "sku": {
+                    "name": "Premium",
+                    "family": "P",
+                    "capacity": 1
+                },
+                "enableNonSslPort": true,
+                "redisConfiguration": {
+                    "maxclients": "7500",
+                    "maxmemory-reserved": "200",
+                    "maxfragmentationmemory-reserved": "300",
+                    "maxmemory-delta": "200"
+                },
+                "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetwork_name'), variables('redis_subnet_name'))]"
+            }
+        }
+    ],
+    "outputs": {
+        "diagnostic_storageAccount_name": {
+            "type": "string",
+            "value": "[variables('diagnostic_storageAccount_name')]"
+        },
+        "gateway_backendAddressPool_name": {
+            "type": "string",
+            "value": "[variables('gateway_backendAddressPool_name')]"
+        },
+        "gateway_name": {
+            "type": "string",
+            "value": "[variables('gateway_name')]"
+        },
+        "paz_networkSecurityGroup_name": {
+            "type": "string",
+            "value": "[variables('paz_networkSecurityGroup_name')]"
+        },
+        "paz_subnet_name": {
+            "type": "string",
+             "value": "[variables('paz_subnet_name')]"
+        },
+        "virtualNetwork_name": {
+            "type": "string",
+            "value": "[variables('virtualNetwork_name')]"
+        },
+        "moodle_share_name": {
+            "type": "string",
+            "value": "[variables('moodle_share_name')]"
+        },
+        "moodle_storageAccount_name": {
+            "type": "string",
+            "value": "[variables('moodle_storageAccount_name')]"
+        },
+        "moodle_storageAccount_key": {
+            "type": "string",
+            "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('moodle_storageAccount_name')), '2019-04-01').keys[0].value]"
+        },
+        "postgresql_name": {
+            "type": "string",
+            "value": "[variables('postgresql_name')]"
+        },
+        "postgresql_moodleDb_name": {
+            "type": "string",
+            "value": "[variables('postgresql_moodleDb_name')]"
+        },
+        "gateway_publicIp_fqdn": {
+            "type": "string",
+            "value": "[reference(variables('gateway_publicIp_name')).dnsSettings.fqdn]"
+        },
+        "redis_name": {
+            "type": "string",
+            "value": "[variables('redis_name')]"
+        },
+        "redis_primarykey": {
+            "type": "string",
+            "value": "[listKeys(resourceId('Microsoft.Cache/Redis', variables('redis_name')), '2019-07-01').primarykey]"
+        }
+    }
+}

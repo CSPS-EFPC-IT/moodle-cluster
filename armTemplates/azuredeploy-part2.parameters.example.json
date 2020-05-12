@@ -1,0 +1,51 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "projectName": {
+            "value": "[Match the corresponding value used as input by part 1]"
+        },
+        "resourceTags": {
+            "value": {
+                "Contact": "[Match the corresponding value used as input by part 1]",
+                "Project": "[Match the corresponding value used as input by part 1]"
+            }
+        },
+        "fileRepositoryUri": {
+            "value": "https://raw.githubusercontent.com/CSPS-EFPC-IT/moodle-cluster"
+        },
+        "diagnostic_storageAccount_name": {
+            "value": "[Match the corresponding value returned as output by part 1]"
+        },
+        "gateway_backendAddressPool_name": {
+            "value": "[Match the corresponding valuereturned as output by part 1]"
+        },
+        "gateway_name": {
+            "value": "[Match the corresponding value returned as output by part 1]"
+        },
+        "location": {
+            "value": "[Match the corresponding value used as input for part 1]"
+        },
+        "paz_networkSecurityGroup_name": {
+            "value": "[Match the corresponding value returned as output by part 1]"
+        },
+        "paz_subnet_name": {
+            "value": "[Match the corresponding value returned as output by part 1]"
+        },
+        "virtualNetwork_name": {
+            "value": "[Match the corresponding value returned as output by part 1]"
+        },
+        "webServerAdminUsername": {
+            "value": "[Match the corresponding value used as input to the create_vm_image.sh]"
+        },
+        "webServerAdminPassword": {
+            "value": "[Match the corresponding value used as input to the create_vm_image.sh]"
+        },
+        "vmss_vmProfile_ImageReference_name": {
+            "value": "[Match the corresponding value used as input to the create_vm_image.sh]"
+        },
+        "moodle_share_name": {
+            "value": "[Match the corresponding value returned as output by part 1]"
+        }
+    }
+}

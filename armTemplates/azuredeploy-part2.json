@@ -1,0 +1,218 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "projectName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the project. This string will be used to name all resources required."
+            }
+        },
+        "resourceTags": {
+            "type": "object",
+            "metadata": {
+                "description": "Tags added to each resource created."
+            }
+        },
+        "fileRepositoryUri": {
+            "type": "string",
+            "metadata": {
+                "description": "The public URI of the project file repository."
+            }
+        },
+        "diagnostic_storageAccount_name": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the storage account to store virtual machine boot diagnostic."
+            }
+        },
+        "gateway_backendAddressPool_name": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the backend address pool to use from the Application Gateway."
+            }
+        },
+        "gateway_name": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Application Gateway to use with the VMSS."
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the location new resources will be created."
+            }
+        },
+        "paz_networkSecurityGroup_name": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Network Security Group applied to the VMSS."
+            }
+        },
+        "paz_subnet_name": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Virtual Network Subnet used by the VMSS."
+            }
+        },
+        "virtualNetwork_name": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Virtual Network used be the VMSS."
+            }
+        },
+        "webServerAdminUsername": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The username to use to connect to the VMSS vms."
+            }
+        },
+        "webServerAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The password to use to connect to the VMSS vms."
+            }
+        },
+        "vmss_vmProfile_ImageReference_name": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the virtual machine image to use for the Virtual Machine Scale Set."
+            }
+        },
+        "moodle_share_name": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of shared MoodleData folder."
+            }
+        }
+    },
+    "variables": {
+        "vmss_name": "[concat(parameters('projectName'), '-VMSS')]",
+        "vmss_vmProfile_networkInterface_name": "[concat(variables('vmss_name'), '-NIC')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "apiVersion": "2019-07-01",
+            "name": "[variables('vmss_name')]",
+            "tags": "[parameters('resourceTags')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard_D2s_v3",
+                "tier": "Standard",
+                "capacity": 1
+            },
+            "properties": {
+                "singlePlacementGroup": true,
+                "upgradePolicy": {
+                    "mode": "Manual"
+                },
+                "scaleInPolicy": {
+                    "rules": [
+                        "Default"
+                    ]
+                },
+                "virtualMachineProfile": {
+                    "osProfile": {
+                        "computerNamePrefix": "[toLower(take(parameters('projectName'),9))]",
+                        "adminUsername": "[parameters('webServerAdminUsername')]",
+                        "adminPassword": "[parameters('webServerAdminPassword')]",
+                        "linuxConfiguration": {
+                            "disablePasswordAuthentication": false,
+                            "provisionVMAgent": true
+                        },
+                        "secrets": []
+                    },
+                    "storageProfile": {
+                        "osDisk": {
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite",
+                            "managedDisk": {
+                                "storageAccountType": "Premium_LRS"
+                            },
+                            "diskSizeGB": 30
+                        },
+                        "imageReference": {
+                            "id": "[resourceId('Microsoft.Compute/images', parameters('vmss_vmProfile_ImageReference_name'))]"
+                        }
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "[variables('vmss_vmProfile_networkInterface_name')]",
+                                "properties": {
+                                    "primary": true,
+                                    "enableAcceleratedNetworking": false,
+                                    "networkSecurityGroup": {
+                                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('paz_networkSecurityGroup_name'))]"
+                                    },
+                                    "dnsSettings": {
+                                        "dnsServers": []
+                                    },
+                                    "enableIPForwarding": false,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "[concat(variables('vmss_vmProfile_networkInterface_name'), '-defaultIpConfiguration')]",
+                                            "properties": {
+                                                "primary": true,
+                                                "subnet": {
+                                                    "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('paz_subnet_name'))]"
+                                                },
+                                                "privateIPAddressVersion": "IPv4",
+                                                "applicationGatewayBackendAddressPools": [
+                                                    {
+                                                        "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('gateway_name')), '/backendAddressPools/', parameters('gateway_backendAddressPool_name'))]"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "diagnosticsProfile": {
+                        "bootDiagnostics": {
+                            "enabled": true,
+                            "storageUri": "[concat('https://', parameters('diagnostic_storageAccount_name'), '.blob.core.windows.net/')]"
+                        }
+                    },
+                    "extensionProfile": {
+                        "extensions": [
+                            {
+                                "name": "installcustomscript",
+                                "properties": {
+                                    "autoUpgradeMinorVersion": true,
+                                    "publisher": "Microsoft.Azure.Extensions",
+                                    "type": "CustomScript",
+                                    "typeHandlerVersion": "2.0",
+                                    "settings": {
+                                        "fileUris": [
+                                            "[concat(parameters('fileRepositoryUri'),'/scripts/initialize_vmss_instance.sh')]"
+                                        ],
+                                        "commandToExecute": "[concat('sudo ./initialize_vmss_instance.sh ', parameters('moodle_share_name'), ' > initialize_vmss_instance.log')]"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "priority": "Regular"
+                },
+                "overprovision": true,
+                "doNotRunExtensionsOnOverprovisionedVMs": false,
+                "platformFaultDomainCount": 5,
+                "automaticRepairsPolicy": {
+                    "enabled": false,
+                    "gracePeriod": "PT30M"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "vmss_name": {
+            "type": "string",
+            "value": "[variables('vmss_name')]"
+        }
+    }
+}

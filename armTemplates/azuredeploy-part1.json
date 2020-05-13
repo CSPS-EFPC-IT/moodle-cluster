@@ -103,7 +103,7 @@
         "redis_subnet_name": "[concat(parameters('projectName'), '-Redis-SN')]",
         "redis_name": "[concat(parameters('projectName'), '-', parameters('environmentName'), '-Redis')]",
         "virtualNetwork_addressPrefix": "[concat(parameters('virtualNetwork_addressBase'), '.0/24')]",
-        "virtualNetwork_name": "[concat(parameters('projectName'), '-VN')]"
+        "virtualNetwork_name": "[concat(parameters('projectName'), '-', toupper(parameters('environmentName')), '-VN')]"
     },
     "resources": [
         {

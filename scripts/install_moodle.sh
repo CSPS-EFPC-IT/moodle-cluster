@@ -188,35 +188,41 @@ if [ -d ${moodleDocumentRoot} ]; then
 fi
 tar zxf moodle-latest-38.tgz -C ${defaultDocumentRoot}
 
-echo "Downloading WebEx Meeting plugin..."
-wget https://moodle.org/plugins/download.php/20750 --output-document mod_webexactivity_moodle38_latest.zip
-echo "Extracting WebEx Meeting plugin..."
-unzip mod_webexactivity_moodle38_latest.zip -d ${moodleDocumentRoot}/mod
+# echo "Downloading WebEx Meeting plugin..."
+# wget https://moodle.org/plugins/download.php/20750 --output-document mod_webexactivity_moodle38_latest.zip
+# echo "Extracting WebEx Meeting plugin..."
+# unzip mod_webexactivity_moodle38_latest.zip -d ${moodleDocumentRoot}/mod
 
-echo "Downloading Multi-Language Content (v2) plugin..."
-wget https://moodle.org/plugins/download.php/20674 --output-document filter_multilang2_moodle38_latest.zip
+echo "Downloading Multi-Language Content (v2) plugin zip file..."
+wget https://moodle.org/plugins/download.php/20674/filter_multilang2_moodle38_2019111900.zip
 echo "Extracting Multi-Language Content (v2) plugin..."
-unzip filter_multilang2_moodle38_latest.zip -d ${moodleDocumentRoot}/filter
+unzip filter_multilang2_moodle38_2019111900.zip -d ${moodleDocumentRoot}/filter
 
-echo "Downloading QR code plugin..."
-wget https://moodle.org/plugins/download.php/20732 --output-document block_qrcode_moodle38_latest.zip
+
+echo "Downloading BigBlueButtonBN plugin zip file..."
+wget https://moodle.org/plugins/download.php/21195/mod_bigbluebuttonbn_moodle38_2019042008.zip
+echo "Extracting BigBlueButtonBN plugin..."
+unzip mod_bigbluebuttonbn_moodle38_2019042008.zip -d ${moodleDocumentRoot}/mod
+
+echo "Downloading Navbar Plus plugin zip file..."
+wget https://moodle.org/plugins/download.php/21066/local_navbarplus_moodle38_2020021800.zip
+echo "Extracting Navbar Plus Package plugin..."
+unzip local_navbarplus_moodle38_2020021800.zip -d ${moodleDocumentRoot}/local
+
+echo "Downloading QR code plugin zip file..."
+wget https://moodle.org/plugins/download.php/20732/block_qrcode_moodle38_2019112100.zip
 echo "Extracting QR code plugin..."
-unzip block_qrcode_moodle38_latest.zip -d ${moodleDocumentRoot}/blocks
+unzip block_qrcode_moodle38_2019112100.zip -d ${moodleDocumentRoot}/blocks
 
-# echo "Downloading Hot Question plugin..."
-# wget https://moodle.org/plugins/download.php/21484 --output-document mod_hotquestion_moodle38_latest.zip
-# echo "Extracting Hot Question plugin..."
-# unzip mod_hotquestion_moodle38_latest.zip -d ${moodleDocumentRoot}/mod
+echo "Downloading Facetoface plugin zip file..."
+wget https://moodle.org/plugins/download.php/18183/mod_facetoface_moodle35_2018110900.zip
+echo "Extracting Facetoface plugin..."
+unzip mod_facetoface_moodle35_2018110900.zip -d ${moodleDocumentRoot}/mod
 
-echo "Downloading Kaltura Video Package plugin..."
-wget https://moodle.org/plugins/download.php/21263 --output-document Kaltura_Video_Package_moodle38_latest.zip
-echo "Extracting Kaltura Video Package plugin..."
-unzip Kaltura_Video_Package_moodle38_latest.zip -d ${moodleDocumentRoot}
-
-echo "Downloading BigBlueButtonBN Package plugin..."
-wget https://moodle.org/plugins/download.php/21195 --output-document mod_bigbluebuttonbn_moodle38_latest.zip
-echo "Extracting BigBlueButtonBN Package plugin..."
-unzip mod_bigbluebuttonbn_moodle38_latest.zip -d ${moodleDocumentRoot}/mod
+echo "Downloading Facetoface plugin zip file..."
+wget https://moodle.org/plugins/download.php/20891/mod_questionnaire_moodle38_2019101705.zip
+echo "Extracting Facetoface plugin..."
+unzip mod_questionnaire_moodle38_2019101705.zip -d ${moodleDocumentRoot}/mod
 
 echo "Updating file ownership on ${moodleDocumentRoot}..."
 chown -R ${apache2User} ${moodleDocumentRoot}

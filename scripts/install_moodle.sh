@@ -188,11 +188,6 @@ if [ -d ${moodleDocumentRoot} ]; then
 fi
 tar zxf moodle-latest-38.tgz -C ${defaultDocumentRoot}
 
-# echo "Downloading WebEx Meeting plugin..."
-# wget https://moodle.org/plugins/download.php/20750 --output-document mod_webexactivity_moodle38_latest.zip
-# echo "Extracting WebEx Meeting plugin..."
-# unzip mod_webexactivity_moodle38_latest.zip -d ${moodleDocumentRoot}/mod
-
 echo "Downloading Multi-Language Content (v2) plugin zip file..."
 wget https://moodle.org/plugins/download.php/20674/filter_multilang2_moodle38_2019111900.zip
 echo "Extracting Multi-Language Content (v2) plugin..."

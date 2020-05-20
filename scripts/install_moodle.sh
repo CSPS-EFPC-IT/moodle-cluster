@@ -193,7 +193,6 @@ wget https://moodle.org/plugins/download.php/20674/filter_multilang2_moodle38_20
 echo "Extracting Multi-Language Content (v2) plugin..."
 unzip filter_multilang2_moodle38_2019111900.zip -d ${moodleDocumentRoot}/filter
 
-
 echo "Downloading BigBlueButtonBN plugin zip file..."
 wget https://moodle.org/plugins/download.php/21195/mod_bigbluebuttonbn_moodle38_2019042008.zip
 echo "Extracting BigBlueButtonBN plugin..."
@@ -218,6 +217,11 @@ echo "Downloading Facetoface plugin zip file..."
 wget https://moodle.org/plugins/download.php/20891/mod_questionnaire_moodle38_2019101705.zip
 echo "Extracting Facetoface plugin..."
 unzip mod_questionnaire_moodle38_2019101705.zip -d ${moodleDocumentRoot}/mod
+
+echo "Downloading Themes: Boost Campus zip file..."
+wget https://moodle.org/plugins/download.php/21242/theme_boost_campus_moodle38_2020032400.zip
+echo "Extracting Themes: Boost Campus plugin..."
+unzip theme_boost_campus_moodle38_2020032400.zip -d ${moodleDocumentRoot}/theme
 
 echo "Updating file ownership on ${moodleDocumentRoot}..."
 chown -R ${apache2User} ${moodleDocumentRoot}

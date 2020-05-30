@@ -52,6 +52,7 @@ echo "moodleAdminPassword=${moodleAdminPassword}"
 echo "moodleAdminEmail=${moodleAdminEmail}"
 echo "redisName=${redisName}"
 echo "redisPassword=${redisPassword}"
+echo "moodleUpgradeKey=${moodleUpgradeKey}"
 echo "Done."
 
 ###############################################################################
@@ -213,15 +214,20 @@ wget https://moodle.org/plugins/download.php/18183/mod_facetoface_moodle35_20181
 echo "Extracting Facetoface plugin..."
 unzip mod_facetoface_moodle35_2018110900.zip -d ${moodleDocumentRoot}/mod
 
-echo "Downloading Facetoface plugin zip file..."
+echo "Downloading Activities: Questionnaire plugin zip file..."
 wget https://moodle.org/plugins/download.php/20891/mod_questionnaire_moodle38_2019101705.zip
-echo "Extracting Facetoface plugin..."
+echo "Extracting Activities: Questionnaire plugin..."
 unzip mod_questionnaire_moodle38_2019101705.zip -d ${moodleDocumentRoot}/mod
 
 echo "Downloading Themes: Boost Campus zip file..."
 wget https://moodle.org/plugins/download.php/21242/theme_boost_campus_moodle38_2020032400.zip
 echo "Extracting Themes: Boost Campus plugin..."
 unzip theme_boost_campus_moodle38_2020032400.zip -d ${moodleDocumentRoot}/theme
+
+echo "Downloading Local Static Pages plugin zip file..."
+wget https://moodle.org/plugins/download.php/21045/local_staticpage_moodle38_2020021400.zip
+echo "Extracting Local Static Pages plugin..."
+unzip local_staticpage_moodle38_2020021400.zip -d ${moodleDocumentRoot}/local
 
 echo "Updating file ownership on ${moodleDocumentRoot}..."
 chown -R ${apache2User} ${moodleDocumentRoot}

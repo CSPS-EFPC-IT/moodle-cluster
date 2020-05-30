@@ -52,6 +52,7 @@ echo "moodleAdminPassword=${moodleAdminPassword}"
 echo "moodleAdminEmail=${moodleAdminEmail}"
 echo "redisName=${redisName}"
 echo "redisPassword=${redisPassword}"
+echo "moodleUpgradeKey=${moodleUpgradeKey}"
 echo "Done."
 
 ###############################################################################
@@ -213,9 +214,9 @@ wget https://moodle.org/plugins/download.php/18183/mod_facetoface_moodle35_20181
 echo "Extracting Facetoface plugin..."
 unzip mod_facetoface_moodle35_2018110900.zip -d ${moodleDocumentRoot}/mod
 
-echo "Downloading Facetoface plugin zip file..."
+echo "Downloading Activities: Questionnaire plugin zip file..."
 wget https://moodle.org/plugins/download.php/20891/mod_questionnaire_moodle38_2019101705.zip
-echo "Extracting Facetoface plugin..."
+echo "Extracting Activities: Questionnaire plugin..."
 unzip mod_questionnaire_moodle38_2019101705.zip -d ${moodleDocumentRoot}/mod
 
 echo "Downloading Themes: Boost Campus zip file..."

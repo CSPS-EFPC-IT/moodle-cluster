@@ -224,7 +224,7 @@ echo "Extracting Themes: Boost Campus plugin..."
 unzip theme_boost_campus_moodle38_2020032400.zip -d ${moodleDocumentRoot}/theme
 
 echo "Downloading Local Static Pages plugin zip file..."
-https://moodle.org/plugins/download.php/21045/local_staticpage_moodle38_2020021400.zip
+wget https://moodle.org/plugins/download.php/21045/local_staticpage_moodle38_2020021400.zip
 echo "Extracting Local Static Pages plugin..."
 unzip local_staticpage_moodle38_2020021400.zip -d ${moodleDocumentRoot}/local
 

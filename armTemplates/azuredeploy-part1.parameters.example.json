@@ -2,25 +2,16 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "projectName": {
-            "value": "XYZ"
+        "databaseAdminUsername": {
+            "value": "my_postgres_admin"
         },
-        "location": {
-            "value": "canadacentral"
+        "databaseAdminPassword": {
+            "value": "mySecretPassword"
         },
         "environmentName": {
             "value": "dev"
         },
-        "resourceTags": {
-            "value": {
-                "Contact": "John Doe",
-                "Project": "XYZ"
-            }
-        },
-        "virtualNetwork_addressBase": {
-            "value": "10.10.10"
-        },
-        "gatewaysslCertificatesUri": {
+        "gatewaySslCertificatesUri": {
             "value": "https://[Your keyvault name].vault.azure.net/secrets/[your SSL/TLS Certificate Name]/[your SSL/TLS certificat Current version ID]"
         },
         "gatewayUserAssignedIdentity": {
@@ -28,11 +19,20 @@
                 "/subscriptions/[your subscription id]/resourceGroups/[your resource group name]/providers/Microsoft.ManagedIdentity/userAssignedIdentities/[Your User Assigned Managed Identity]": {}
             }
         },
-        "databaseAdminUsername": {
-            "value": "my_postgres_admin"
+        "location": {
+            "value": "canadacentral"
         },
-        "databaseAdminPassword": {
-            "value": "mySecretPassword"
+        "projectName": {
+            "value": "XYZ"
+        },
+        "resourceTags": {
+            "value": {
+                "Contact": "John Doe",
+                "Project": "XYZ"
+            }
+        },
+        "virtualNetworkAddressBase": {
+            "value": "10.10.10"
         }
     }
 }

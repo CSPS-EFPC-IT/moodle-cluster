@@ -207,6 +207,7 @@ echo_title "Mount Moodle data fileshare."
 if [ ! -d "/mnt/${parameters[fileShareName]}" ]; then
     echo "Creating /mnt/${parameters[fileShareName]} folder..."
     mkdir /mnt/${parameters[fileShareName]}
+    chown -R ${apache2User} /mnt/${parameters[fileShareName]}
 else
     echo "Skipping /mnt/${parameters[fileShareName]} creation."
 fi
@@ -258,7 +259,7 @@ if [ -d ${moodleDocumentRoot} ]; then
     echo "Deleting old ${moodleDocumentRoot} folder..."
     rm -rf ${moodleDocumentRoot}
 fi
-tar zxf moodle-latest-38.tgz -C ${defaultDocumentRoot}
+tar zxfv moodle-latest-38.tgz -C ${defaultDocumentRoot}
 
 echo "Downloading Multi-Language Content (v2) plugin zip file..."
 wget https://moodle.org/plugins/download.php/20674/filter_multilang2_moodle38_2019111900.zip
@@ -313,7 +314,7 @@ sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRoot}/admin/cli/install.php 
 --non-interactive \
 --lang=en \
 --chmod=2777 \
---wwwroot=https://${moodleFqdn}/ \
+--wwwroot=https://${parameters[moodleFqdn]}/ \
 --dataroot=/mnt/${parameters[fileShareName]}/ \
 --dbtype=pgsql \
 --dbhost=${parameters[dbServerFqdn]} \

@@ -5,13 +5,13 @@
         "databaseAdminPassword": {
             "type": "securestring",
             "metadata": {
-                "description": "The password to use in order to manage to the database server."
+                "description": "The password to use in order to manage the database server."
             }
         },
         "databaseAdminUsername": {
             "type": "securestring",
             "metadata": {
-                "description": "The username to use in order to manage to the database server."
+                "description": "The username to use in order to manage the database server."
             }
         },
         "environmentName": {

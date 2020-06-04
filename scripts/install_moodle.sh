@@ -187,15 +187,16 @@ echo "Done."
 echo_title "Create Moodle database user if not existing."
 ###############################################################################
 echo "Creating and granting privileges to database user ${parameters[moodleDbUsername]}..."
-psql "host=${parameters[dbServerFqdn]} port=5432 dbname=postgres user=${parameters[dbServerAdminUsername]}@${parameters[dbServerName]} password=${parameters[dbServerAdminPassword]} sslmode=require" << EOF
+export PGPASSWORD="${parameters[dbServerAdminPassword]}"
+psql "host=${parameters[dbServerFqdn]} port=5432 dbname=postgres user=${parameters[dbServerAdminUsername]}@${parameters[dbServerName]} sslmode=require" << EOF
 DO \$\$
 BEGIN
-    IF NOT EXISTS ( SELECT FROM pg_catalog.pg_roles WHERE rolname='${parameters[moodleDbUsername]}' ) THEN
-        create user ${parameters[moodleDbUsername]} with encrypted password '${parameters[moodleDbPassword]}';
-        grant all privileges on database ${parameters[moodleDbName]} to ${parameters[moodleDbUsername]};
-        RAISE NOTICE 'User ${parameters[moodleDbUsername]} created.';
+    IF EXISTS ( SELECT FROM pg_catalog.pg_roles WHERE rolname='${parameters[moodleDbUsername]}' ) THEN
+        RAISE WARNING 'user ${parameters[moodleDbUsername]} already existing. Skipping task.';
     ELSE
-      RAISE WARNING 'The user ${parameters[moodleDbUsername]} was already existing.';
+        CREATE USER ${parameters[moodleDbUsername]} WITH ENCRYPTED PASSWORD '${parameters[moodleDbPassword]}';
+        GRANT ALL PRIVILEGES ON DATABASE ${parameters[moodleDbName]} TO ${parameters[moodleDbUsername]};
+        RAISE INFO 'User ${parameters[moodleDbUsername]} created.';
     END IF;
 END
 \$\$;

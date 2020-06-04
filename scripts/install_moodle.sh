@@ -209,7 +209,6 @@ echo_title "Mount Moodle data fileshare."
 if [ ! -d "/mnt/${parameters[fileShareName]}" ]; then
     echo "Creating /mnt/${parameters[fileShareName]} folder..."
     mkdir /mnt/${parameters[fileShareName]}
-    chown -R ${apache2User} /mnt/${parameters[fileShareName]}
 else
     echo "Skipping /mnt/${parameters[fileShareName]} creation."
 fi
@@ -355,13 +354,9 @@ echo_title "Update Moodle Universal Cache (MUC) config for Redis."
 mucConfigFile="/mnt/${parameters[fileShareName]}/muc/config.php"
 if ! grep -q ${parameters[redisName]} ${mucConfigFile}; then
     echo "Updating ${mucConfigFile} file..."
-    echo "************************************* Content of ${mucConfigFile} BEFORE the update *************************************"
-    cat ${mucConfigFile}
-    echo "********************************** Content of ${mucConfigFile} BEFORE the update (EOF) **********************************"
+    cp ${mucConfigFile} ${mucConfigFile}.before
     php ${installDir}/update_muc.php ${parameters[redisHostName]} ${parameters[redisName]} ${parameters[redisPrimaryKey]} ${mucConfigFile}
-    echo "************************************* Content of ${mucConfigFile} AFTER the update **************************************"
-    cat ${mucConfigFile}
-    echo "********************************** Content of ${mucConfigFile} AFTER the update (EOF) ***********************************"
+    cp ${mucConfigFile} ${mucConfigFile}.after
 else
     echo "Skipping ${mucConfigFile} file update."
 fi

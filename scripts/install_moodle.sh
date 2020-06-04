@@ -41,8 +41,8 @@ sortedParameterList=$(echo ${!parameters[@]} | tr " " "\n" | sort | tr "\n" " ")
 echo "Mapping input parameter values and checking for extra parameters..."
 for parameterKeyValuePair in "$@"
 do
-    key=$(echo $parameterKeyValuePair | cut -f1 -d=)
-    value=$(echo $parameterKeyValuePair | cut -f2 -d=)
+    key=${parameterKeyValuePair%%=*} # Get everything before the first equal (=) sign.
+    value=${parameterKeyValuePair#*=} # Get everything after the first equal (=) sign.
 
     ## Test if the parameter key start with "--" and if the parameter key (without the first 2 dashes) is a key in the expected parameter list.
     if [[ ${key} =~ ^--.*$ && ${parameters[${key:2}]+_} ]]; then

@@ -29,6 +29,7 @@ declare -A parameters=( [dbServerAdminPassword]= \
                         [moodleDbUsername]= \
                         [moodleFqdn]= \
                         [moodleUpgradeKey]= \
+                        [redisHostName]= \
                         [redisName]= \
                         [redisPrimaryKey]= \
                         [storageAccountEndPoint]= \
@@ -353,7 +354,13 @@ echo_title "Update Moodle Universal Cache (MUC) config for Redis."
 mucConfigFile="/mnt/${parameters[fileShareName]}/muc/config.php"
 if ! grep -q ${parameters[redisName]} ${mucConfigFile}; then
     echo "Updating ${mucConfigFile} file..."
-    php ${installDir}/update_muc.php ${parameters[redisName]} ${parameters[redisPrimaryKey]} ${mucConfigFile}
+    echo "************************************* Content of ${mucConfigFile} BEFORE the update *************************************"
+    cat ${mucConfigFile}
+    echo "********************************** Content of ${mucConfigFile} BEFORE the update (EOF) **********************************"
+    php ${installDir}/update_muc.php ${parameters[redisHostName]} ${parameters[redisName]} ${parameters[redisPrimaryKey]} ${mucConfigFile}
+    echo "************************************* Content of ${mucConfigFile} AFTER the update **************************************"
+    cat ${mucConfigFile}
+    echo "********************************** Content of ${mucConfigFile} AFTER the update (EOF) ***********************************"
 else
     echo "Skipping ${mucConfigFile} file update."
 fi

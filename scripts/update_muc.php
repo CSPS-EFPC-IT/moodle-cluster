@@ -1,8 +1,9 @@
 <?php
     // Map input parameters.
-    $redisName = $argv[1];
-    $redisPassword = $argv[2];
-    $configFilePath = $argv[3];
+    $redisHostName = $argv[1];
+    $redisName = $argv[2];
+    $redisPassword = $argv[3];
+    $configFilePath = $argv[4];
 
     // Allow and load MUC config file.
     defined('MOODLE_INTERNAL') or define('MOODLE_INTERNAL', 'SomeDefaultValue');
@@ -15,7 +16,7 @@
         'plugin' => 'redis',
         'configuration' =>
         array (
-        'server' => $redisName . '.redis.cache.windows.net',
+        'server' => $redisHostName,
         'prefix' => 'mdl_',
         'password' => $redisPassword,
         'serializer' => '1',

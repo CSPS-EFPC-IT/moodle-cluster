@@ -354,9 +354,7 @@ echo_title "Update Moodle Universal Cache (MUC) config for Redis."
 mucConfigFile="/mnt/${parameters[fileShareName]}/muc/config.php"
 if ! grep -q ${parameters[redisName]} ${mucConfigFile}; then
     echo "Updating ${mucConfigFile} file..."
-    cp ${mucConfigFile} ${mucConfigFile}.before
     php ${installDir}/update_muc.php ${parameters[redisHostName]} ${parameters[redisName]} ${parameters[redisPrimaryKey]} ${mucConfigFile}
-    cp ${mucConfigFile} ${mucConfigFile}.after
 else
     echo "Skipping ${mucConfigFile} file update."
 fi

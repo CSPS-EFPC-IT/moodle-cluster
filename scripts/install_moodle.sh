@@ -39,18 +39,21 @@ declare -A parameters=( [dbServerAdminPassword]= \
 sortedParameterList=$(echo ${!parameters[@]} | tr " " "\n" | sort | tr "\n" " ");
 
 echo "Mapping input parameter values and checking for extra parameters..."
-for parameterKeyValuePair in "$@"
+while [[ ${#@} -gt 0 ]];
 do
-    key=${parameterKeyValuePair%%=*} # Get everything before the first equal (=) sign.
-    value=${parameterKeyValuePair#*=} # Get everything after the first equal (=) sign.
+    key=$1
+    value=$2
 
-    ## Test if the parameter key start with "--" and if the parameter key (without the first 2 dashes) is a key in the expected parameter list.
-    if [[ ${key} =~ ^--.*$ && ${parameters[${key:2}]+_} ]]; then
-        parameters[${key:2}]=$value
+    ## Test if the parameter key start with "-" and if the parameter key (without the first dash) is in the expected parameter list.
+    if [[ ${key} =~ ^-.*$ && ${parameters[${key:1}]+_} ]]; then
+        parameters[${key:1}]="$value"
     else
         echo "ERROR: Unexpected parameter: $key"
         extraParameterFlag=true;
     fi
+
+    # Move to the next key/value pair or up to the end of the parameter list.
+    shift $(( 2 < ${#@} ? 2 : ${#@} ))
 done
 
 echo "Checking for missing parameters..."
@@ -68,7 +71,7 @@ else
     echo "ERROR: Execution aborted due to missing or extra parameters."
     usage="USAGE: $(basename $0)"
     for p in $sortedParameterList; do
-        usage="${usage} --${p}=\$${p}"
+        usage="${usage} -${p} \$${p}"
     done
     echo "${usage}";
     exit 1;
@@ -79,53 +82,6 @@ for p in $sortedParameterList; do
     echo "DEBUG: $p = \"${parameters[$p]}\""
 done
 echo "Done."
-
-
-# ###############################################################################
-# echo_title "Map input parameters."
-# ###############################################################################
-# ##
-# storageAccountEndPoint="$1"
-# storageAccountName="$2"
-# storageAccountKey="$3"
-# fileShareName="$4"
-# dbServerName="$5"
-# dbServerAdminUsername="$6"
-# dbServerAdminPassword="$7"
-# moodleDbName="$8"
-# moodleDbUsername="$9"
-# shift 9
-# moodleDbPassword="$1"
-# moodleFqdn="$2"
-# moodleAdminUsername="$3"
-# moodleAdminPassword="$4"
-# moodleAdminEmail="$5"
-# redisName="$6"
-# redisPrimaryKey="$7"
-# moodleUpgradeKey="$8"
-# echo "Done."
-
-# ###############################################################################
-# echo_title "Echo parameter values for debuging purpose."
-# ###############################################################################
-# echo "storageAccountEndPoint=${parameters[storageAccountEndPoint]}"
-# echo "storageAccountName=${parameters[storageAccountName]}"
-# echo "storageAccountKey=${parameters[storageAccountKey]}"
-# echo "fileShareName=${parameters[fileShareName]}"
-# echo "dbServerName=${parameters[dbServerName]}"
-# echo "dbServerAdminUsername=${parameters[dbServerAdminUsername]}"
-# echo "dbServerAdminPassword=${parameters[dbServerAdminPassword]}"
-# echo "moodleDbName=${parameters[moodleDbName]}"
-# echo "moodleDbUsername=${parameters[moodleDbUsername]}"
-# echo "moodleDbPassword=${parameters[moodleDbPassword]}"
-# echo "moodleFqdn=${moodleFqdn}"
-# echo "moodleAdminUsername=${parameters[moodleAdminUsername]}"
-# echo "moodleAdminPassword=${parameters[moodleAdminPassword]}"
-# echo "moodleAdminEmail=${parameters[moodleAdminEmail]}"
-# echo "redisName=${parameters[redisName]}"
-# echo "redisPrimaryKey=${parameters[redisPrimaryKey]}"
-# echo "moodleUpgradeKey=${parameters[moodleUpgradeKey]}"
-# echo "Done."
 
 ###############################################################################
 echo_title "Set useful variables."

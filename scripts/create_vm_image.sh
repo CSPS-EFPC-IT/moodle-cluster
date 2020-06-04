@@ -33,22 +33,25 @@ declare -A parameters=( [applicationNetworkSecurityGroupName]= \
 
 sortedParameterList=$(echo ${!parameters[@]} | tr " " "\n" | sort | tr "\n" " ");
 
-echo 'Parse input parameters...'
-for parameterKeyValuePair in "$@"
+echo "Mapping input parameter values and checking for extra parameters..."
+while [[ ${#@} -gt 0 ]];
 do
-    key=${parameterKeyValuePair%%=*} # Get everything before the first equal (=) sign.
-    value=${parameterKeyValuePair#*=} # Get everything after the first equal (=) sign.
+    key=$1
+    value=$2
 
-    ## Test if the parameter key start with "--" and if the parameter key (without the first 2 dashes) is a key in the expected parameter list.
-    if [[ ${key} =~ ^--.*$ && ${parameters[${key:2}]+_} ]]; then
-        parameters[${key:2}]="$value"
+    ## Test if the parameter key start with "-" and if the parameter key (without the first dash) is in the expected parameter list.
+    if [[ ${key} =~ ^-.*$ && ${parameters[${key:1}]+_} ]]; then
+        parameters[${key:1}]="$value"
     else
         echo "ERROR: Unexpected parameter: $key"
         extraParameterFlag=true;
     fi
+
+    # Move to the next key/value pair or up to the end of the parameter list.
+    shift $(( 2 < ${#@} ? 2 : ${#@} ))
 done
 
-echo 'Check for missing parameters...'
+echo "Checking for missing parameters..."
 for p in $sortedParameterList; do
     if [[ -z ${parameters[$p]} ]]; then
         echo "ERROR: Missing parameter: $p."
@@ -62,7 +65,7 @@ else
     echo "ERROR: Execution aborted due to missing or extra parameters."
     usage="USAGE: $(basename $0)"
     for p in $sortedParameterList; do
-        usage="${usage} --${p}=\$${p}"
+        usage="${usage} -${p} \$${p}"
     done
     echo "${usage}";
     exit 1;
@@ -107,25 +110,25 @@ az vm extension set \
     --protected-settings \
         "{ \
             \"commandToExecute\": \"sudo ./install_moodle.sh \
-                --dbServerAdminPassword=${parameters[databaseAdminPassword]} \
-                --dbServerAdminUsername=${parameters[databaseAdminUsername]} \
-                --dbServerFqdn=${parameters[databaseFqdn]} \
-                --dbServerName=${parameters[databaseName]} \
-                --fileShareName=${parameters[moodleShareName]} \
-                --moodleAdminEmail=${parameters[moodleAdminEmail]} \
-                --moodleAdminPassword=${parameters[moodleAdminPassword]} \
-                --moodleAdminUsername=${parameters[moodleAdminUsername]} \
-                --moodleDbName=${parameters[databaseApplicationDatabaseName]} \
-                --moodleDbPassword=${parameters[databaseMoodlePassword]} \
-                --moodleDbUsername=${parameters[databaseMoodleUsername]} \
-                --moodleFqdn=${parameters[gatewayPublicIpFqdn]} \
-                --moodleUpgradeKey=${parameters[moodleUpgradeKey]} \
-                --redisHostName=${parameters[redisHostName]} \
-                --redisName=${parameters[redisName]} \
-                --redisPrimaryKey=${parameters[redisPrimaryKey]} \
-                --storageAccountEndPoint=${parameters[moodleStorageAccountFilePrimaryEndPoint]} \
-                --storageAccountKey=${parameters[moodleStorageAccountKey]} \
-                --storageAccountName=${parameters[moodleStorageAccountName]} > /var/log/install_moodle.log 2>&1\" \
+                -dbServerAdminPassword ${parameters[databaseAdminPassword]} \
+                -dbServerAdminUsername ${parameters[databaseAdminUsername]} \
+                -dbServerFqdn ${parameters[databaseFqdn]} \
+                -dbServerName ${parameters[databaseName]} \
+                -fileShareName ${parameters[moodleShareName]} \
+                -moodleAdminEmail ${parameters[moodleAdminEmail]} \
+                -moodleAdminPassword ${parameters[moodleAdminPassword]} \
+                -moodleAdminUsername ${parameters[moodleAdminUsername]} \
+                -moodleDbName ${parameters[databaseApplicationDatabaseName]} \
+                -moodleDbPassword ${parameters[databaseMoodlePassword]} \
+                -moodleDbUsername ${parameters[databaseMoodleUsername]} \
+                -moodleFqdn ${parameters[gatewayPublicIpFqdn]} \
+                -moodleUpgradeKey ${parameters[moodleUpgradeKey]} \
+                -redisHostName ${parameters[redisHostName]} \
+                -redisName ${parameters[redisName]} \
+                -redisPrimaryKey ${parameters[redisPrimaryKey]} \
+                -storageAccountEndPoint ${parameters[moodleStorageAccountFilePrimaryEndPoint]} \
+                -storageAccountKey ${parameters[moodleStorageAccountKey]} \
+                -storageAccountName ${parameters[moodleStorageAccountName]} > /var/log/install_moodle.log 2>&1\" \
          }"
 
 ################################################################################

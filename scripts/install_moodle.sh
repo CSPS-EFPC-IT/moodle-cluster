@@ -13,47 +13,118 @@ echo_title "Starting $0 on $(date)."
 ###############################################################################
 
 ###############################################################################
-echo_title "Map input parameters."
+echo_title 'Read input parameters.'
 ###############################################################################
-storageAccountName="$1"
-storageAccountKey="$2"
-fileShareName="$3"
-dbServerName="$4"
-dbServerAdminUsername="$5"
-dbServerAdminPassword="$6"
-moodleDbName="$7"
-moodleDbUsername="$8"
-moodleDbPassword="$9"
-shift 9
-moodleDnsName="$1"
-moodleAdminUsername="$2"
-moodleAdminPassword="$3"
-moodleAdminEmail="$4"
-redisName="$5"
-redisPassword="$6"
-moodleUpgradeKey="$7"
+echo 'Initializing expected parameters array...'
+declare -A parameters=( [dbServerAdminPassword]= \
+                        [dbServerAdminUsername]= \
+                        [dbServerFqdn]= \
+                        [dbServerName]= \
+                        [fileShareName]= \
+                        [moodleAdminEmail]= \
+                        [moodleAdminPassword]= \
+                        [moodleAdminUsername]= \
+                        [moodleDbName]= \
+                        [moodleDbPassword]= \
+                        [moodleDbUsername]= \
+                        [moodleFqdn]= \
+                        [moodleUpgradeKey]= \
+                        [redisName]= \
+                        [redisPrimaryKey]= \
+                        [storageAccountEndPoint]= \
+                        [storageAccountKey]= \
+                        [storageAccountName]= )
+
+sortedParameterList=$(echo ${!parameters[@]} | tr " " "\n" | sort | tr "\n" " ");
+
+echo "Mapping input parameter values and checking for extra parameters..."
+for parameterKeyValuePair in "$@"
+do
+    key=$(echo $parameterKeyValuePair | cut -f1 -d=)
+    value=$(echo $parameterKeyValuePair | cut -f2 -d=)
+
+    ## Test if the parameter key start with "--" and if the parameter key (without the first 2 dashes) is a key in the expected parameter list.
+    if [[ ${key} =~ ^--.*$ && ${parameters[${key:2}]+_} ]]; then
+        parameters[${key:2}]=$value
+    else
+        echo "ERROR: Unexpected parameter: $key"
+        extraParameterFlag=true;
+    fi
+done
+
+echo "Checking for missing parameters..."
+for p in $sortedParameterList; do
+    if [[ -z ${parameters[$p]} ]]; then
+        echo "ERROR: Missing parameter: $p."
+        missingParameterFlag=true;
+    fi
+done
+
+# Abort if missing or extra parameters.
+if [[ -z $extraParameterFlag && -z $missingParameterFlag ]]; then
+    echo "INFO: No missing or extra parameters."
+else
+    echo "ERROR: Execution aborted due to missing or extra parameters."
+    usage="USAGE: $(basename $0)"
+    for p in $sortedParameterList; do
+        usage="${usage} --${p}=\$${p}"
+    done
+    echo "${usage}";
+    exit 1;
+fi
+
+echo 'Echo parameter values for debug purposes...'
+for p in $sortedParameterList; do
+    echo "DEBUG: $p = \"${parameters[$p]}\""
+done
 echo "Done."
 
-###############################################################################
-echo_title "Echo parameter values for debuging purpose."
-###############################################################################
-echo "storageAccountName=${storageAccountName}"
-echo "storageAccountKey=${storageAccountKey}"
-echo "fileShareName=${fileShareName}"
-echo "dbServerName=${dbServerName}"
-echo "dbServerAdminUsername=${dbServerAdminUsername}"
-echo "dbServerAdminPassword=${dbServerAdminPassword}"
-echo "moodleDbName=${moodleDbName}"
-echo "moodleDbUsername=${moodleDbUsername}"
-echo "moodleDbPassword=${moodleDbPassword}"
-echo "moodleDnsName=${moodleDnsName}"
-echo "moodleAdminUsername=${moodleAdminUsername}"
-echo "moodleAdminPassword=${moodleAdminPassword}"
-echo "moodleAdminEmail=${moodleAdminEmail}"
-echo "redisName=${redisName}"
-echo "redisPassword=${redisPassword}"
-echo "moodleUpgradeKey=${moodleUpgradeKey}"
-echo "Done."
+
+# ###############################################################################
+# echo_title "Map input parameters."
+# ###############################################################################
+# ##
+# storageAccountEndPoint="$1"
+# storageAccountName="$2"
+# storageAccountKey="$3"
+# fileShareName="$4"
+# dbServerName="$5"
+# dbServerAdminUsername="$6"
+# dbServerAdminPassword="$7"
+# moodleDbName="$8"
+# moodleDbUsername="$9"
+# shift 9
+# moodleDbPassword="$1"
+# moodleFqdn="$2"
+# moodleAdminUsername="$3"
+# moodleAdminPassword="$4"
+# moodleAdminEmail="$5"
+# redisName="$6"
+# redisPrimaryKey="$7"
+# moodleUpgradeKey="$8"
+# echo "Done."
+
+# ###############################################################################
+# echo_title "Echo parameter values for debuging purpose."
+# ###############################################################################
+# echo "storageAccountEndPoint=${parameters[storageAccountEndPoint]}"
+# echo "storageAccountName=${parameters[storageAccountName]}"
+# echo "storageAccountKey=${parameters[storageAccountKey]}"
+# echo "fileShareName=${parameters[fileShareName]}"
+# echo "dbServerName=${parameters[dbServerName]}"
+# echo "dbServerAdminUsername=${parameters[dbServerAdminUsername]}"
+# echo "dbServerAdminPassword=${parameters[dbServerAdminPassword]}"
+# echo "moodleDbName=${parameters[moodleDbName]}"
+# echo "moodleDbUsername=${parameters[moodleDbUsername]}"
+# echo "moodleDbPassword=${parameters[moodleDbPassword]}"
+# echo "moodleFqdn=${moodleFqdn}"
+# echo "moodleAdminUsername=${parameters[moodleAdminUsername]}"
+# echo "moodleAdminPassword=${parameters[moodleAdminPassword]}"
+# echo "moodleAdminEmail=${parameters[moodleAdminEmail]}"
+# echo "redisName=${parameters[redisName]}"
+# echo "redisPrimaryKey=${parameters[redisPrimaryKey]}"
+# echo "moodleUpgradeKey=${parameters[moodleUpgradeKey]}"
+# echo "Done."
 
 ###############################################################################
 echo_title "Set useful variables."
@@ -114,16 +185,16 @@ echo "Done."
 ###############################################################################
 echo_title "Create Moodle database user if not existing."
 ###############################################################################
-echo "Creating and granting privileges to database user ${moodleDbUsername}..."
-psql "host=${dbServerName}.postgres.database.azure.com port=5432 dbname=postgres user=${dbServerAdminUsername}@${dbServerName} password=${dbServerAdminPassword} sslmode=require" << EOF
+echo "Creating and granting privileges to database user ${parameters[moodleDbUsername]}..."
+psql "host=${parameters[dbServerFqdn]} port=5432 dbname=postgres user=${parameters[dbServerAdminUsername]}@${parameters[dbServerName]} password=${parameters[dbServerAdminPassword]} sslmode=require" << EOF
 DO \$\$
 BEGIN
-    IF NOT EXISTS ( SELECT FROM pg_catalog.pg_roles WHERE rolname='${moodleDbUsername}' ) THEN
-        create user ${moodleDbUsername} with encrypted password '${moodleDbPassword}';
-        grant all privileges on database ${moodleDbName} to ${moodleDbUsername};
-        RAISE NOTICE 'User ${moodleDbUsername} created.';
+    IF NOT EXISTS ( SELECT FROM pg_catalog.pg_roles WHERE rolname='${parameters[moodleDbUsername]}' ) THEN
+        create user ${parameters[moodleDbUsername]} with encrypted password '${parameters[moodleDbPassword]}';
+        grant all privileges on database ${parameters[moodleDbName]} to ${parameters[moodleDbUsername]};
+        RAISE NOTICE 'User ${parameters[moodleDbUsername]} created.';
     ELSE
-      RAISE WARNING 'The user ${moodleDbUsername} was already existing.';
+      RAISE WARNING 'The user ${parameters[moodleDbUsername]} was already existing.';
     END IF;
 END
 \$\$;
@@ -133,11 +204,11 @@ echo "Done."
 ###############################################################################
 echo_title "Mount Moodle data fileshare."
 ###############################################################################
-if [ ! -d "/mnt/${fileShareName}" ]; then
-    echo "Creating /mnt/${fileShareName} folder..."
-    mkdir /mnt/${fileShareName}
+if [ ! -d "/mnt/${parameters[fileShareName]}" ]; then
+    echo "Creating /mnt/${parameters[fileShareName]} folder..."
+    mkdir /mnt/${parameters[fileShareName]}
 else
-    echo "Skipping /mnt/${fileShareName} creation."
+    echo "Skipping /mnt/${parameters[fileShareName]} creation."
 fi
 if [ ! -d "/etc/smbcredentials" ]; then
     echo "Creating /etc/smbcredentials folder..."
@@ -147,21 +218,21 @@ else
 fi
 if [ ! -f "/etc/smbcredentials/openlearningmoodlesa.cred" ]; then
     echo "Creating /etc/smbcredentials/openlearningmoodlesa.cred file..."
-    echo "username=${storageAccountName}" >> /etc/smbcredentials/${storageAccountName}.cred
-    echo "password=${storageAccountKey}" >> /etc/smbcredentials/${storageAccountName}.cred
+    echo "username=${parameters[storageAccountName]}" >> /etc/smbcredentials/${parameters[storageAccountName]}.cred
+    echo "password=${parameters[storageAccountKey]}" >> /etc/smbcredentials/${parameters[storageAccountName]}.cred
 else
     echo "Skipping /etc/smbcredentials/openlearningmoodlesa.cred file creation."
 fi
-echo "Updating permission on /etc/smbcredentials/${storageAccountName}.cred..."
-chmod 600 /etc/smbcredentials/${storageAccountName}.cred
-if ! grep -q ${storageAccountName} /etc/fstab; then
+echo "Updating permission on /etc/smbcredentials/${parameters[storageAccountName]}.cred..."
+chmod 600 /etc/smbcredentials/${parameters[storageAccountName]}.cred
+if ! grep -q ${parameters[storageAccountName]} /etc/fstab; then
     echo "Updating /etc/fstab file..."
-    echo "//${storageAccountName}.file.core.windows.net/${fileShareName} /mnt/${fileShareName} cifs nofail,vers=3.0,credentials=/etc/smbcredentials/${storageAccountName}.cred,dir_mode=0777,file_mode=0777,serverino" >> /etc/fstab
+    echo "//$(echo ${parameters[storageAccountEndPoint]} | awk -F/ '{print $3}')/${parameters[fileShareName]} /mnt/${parameters[fileShareName]} cifs nofail,vers=3.0,credentials=/etc/smbcredentials/${parameters[storageAccountName]}.cred,dir_mode=0777,file_mode=0777,serverino" >> /etc/fstab
 else
     echo "Skipping /etc/fstab file update."
 fi
-echo "Mounting /mnt/${fileShareName} folder..."
-mount -t cifs //${storageAccountName}.file.core.windows.net/${fileShareName} /mnt/${fileShareName} -o vers=3.0,credentials=/etc/smbcredentials/${storageAccountName}.cred,dir_mode=0777,file_mode=0777,serverino
+echo "Mounting all defined mount points..."
+mount -a
 echo "Done."
 
 ###############################################################################
@@ -242,22 +313,22 @@ sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRoot}/admin/cli/install.php 
 --non-interactive \
 --lang=en \
 --chmod=2777 \
---wwwroot=https://${moodleDnsName}/ \
---dataroot=/mnt/${fileShareName}/ \
+--wwwroot=https://${moodleFqdn}/ \
+--dataroot=/mnt/${parameters[fileShareName]}/ \
 --dbtype=pgsql \
---dbhost=${dbServerName}.postgres.database.azure.com \
---dbname=${moodleDbName} \
+--dbhost=${parameters[dbServerFqdn]} \
+--dbname=${parameters[moodleDbName]} \
 --prefix=mdl_ \
 --dbport=5432 \
---dbuser=${moodleDbUsername}@${dbServerName} \
---dbpass="${moodleDbPassword}" \
+--dbuser=${parameters[moodleDbUsername]}@${parameters[dbServerName]} \
+--dbpass="${parameters[moodleDbPassword]}" \
 --fullname="Moodle" \
 --shortname="Moodle" \
 --summary="Welcome - Bienvenue" \
---adminuser=${moodleAdminUsername} \
---adminpass="${moodleAdminPassword}" \
---adminemail=${moodleAdminEmail} \
---upgradekey=${moodleUpgradeKey} \
+--adminuser=${parameters[moodleAdminUsername]} \
+--adminpass="${parameters[moodleAdminPassword]}" \
+--adminemail=${parameters[moodleAdminEmail]} \
+--upgradekey=${parameters[moodleUpgradeKey]} \
 --agree-license
 
 ###############################################################################
@@ -278,10 +349,10 @@ echo "Done"
 ###############################################################################
 echo_title "Update Moodle Universal Cache (MUC) config for Redis."
 ###############################################################################
-mucConfigFile="/mnt/${fileShareName}/muc/config.php"
-if ! grep -q ${redisName} ${mucConfigFile}; then
+mucConfigFile="/mnt/${parameters[fileShareName]}/muc/config.php"
+if ! grep -q ${parameters[redisName]} ${mucConfigFile}; then
     echo "Updating ${mucConfigFile} file..."
-    php ${installDir}/update_muc.php ${redisName} ${redisPassword} ${mucConfigFile}
+    php ${installDir}/update_muc.php ${parameters[redisName]} ${parameters[redisPrimaryKey]} ${mucConfigFile}
 else
     echo "Skipping ${mucConfigFile} file update."
 fi

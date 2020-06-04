@@ -21,7 +21,6 @@ fileShareName="$1"
 echo_title "Recreate moodledata mount point."
 ###############################################################################
 mkdir /mnt/${fileShareName}
-chown -R www-data /mnt/${fileShareName}
 
 ###############################################################################
 echo_title "Mount all storages."

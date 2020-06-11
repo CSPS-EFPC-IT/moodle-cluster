@@ -91,9 +91,6 @@ for p in $sortedParameterList; do
 done
 echo "Done."
 
-
-ls --illegal-option
-
 ###############################################################################
 echo_title "Set useful variables."
 ###############################################################################

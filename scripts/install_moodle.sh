@@ -4,6 +4,11 @@
 # exit when any command fails
 set -e
 
+# keep track of the last executed command
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+# echo an error message before exiting
+trap 'echo "\"${last_command}\" command failed with exit code $?."' EXIT
+
 function echo_title {
     echo ""
     echo "###############################################################################"
@@ -85,6 +90,9 @@ for p in $sortedParameterList; do
     echo "DEBUG: $p = \"${parameters[$p]}\""
 done
 echo "Done."
+
+
+ls --illegal-option
 
 ###############################################################################
 echo_title "Set useful variables."

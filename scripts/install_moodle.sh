@@ -3,7 +3,6 @@
 
 # exit when any command fails
 set -e
-
 # keep track of the last executed command
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
@@ -217,14 +216,14 @@ echo "Done."
 ###############################################################################
 echo_title "Download and extract Moodle files and plugins."
 ###############################################################################
-echo "Downloading latest Moodle 3.8 zip file..."
-wget https://download.moodle.org/download.php/direct/stable38/moodle-latest-38.tgz --output-document moodle-latest-38.tgz
-echo "Extracting moodle zip file..."
+echo "Downloading Moodle 3.8.3 tar file..."
+wget https://download.moodle.org/download.php/direct/stable38/moodle-3.8.3.tgz
+echo "Extracting moodle tar file..."
 if [ -d ${moodleDocumentRoot} ]; then
     echo "Deleting old ${moodleDocumentRoot} folder..."
     rm -rf ${moodleDocumentRoot}
 fi
-tar zxfv moodle-latest-38.tgz -C ${defaultDocumentRoot}
+tar zxfv moodle-3.8.3.tgz -C ${defaultDocumentRoot}
 
 echo "Downloading Multi-Language Content (v2) plugin zip file..."
 wget https://moodle.org/plugins/download.php/20674/filter_multilang2_moodle38_2019111900.zip

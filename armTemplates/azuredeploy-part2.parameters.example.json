@@ -8,6 +8,9 @@
         "application_subnet_name": {
             "value": "[Match the corresponding value returned as output by part 1]"
         },
+        "corporateInternetGatewayIpAddress" : {
+            "value": "[Your Corporate Internet Gateway IP Address]"
+        },
         "environmentName": {
             "value": "dev"
         },

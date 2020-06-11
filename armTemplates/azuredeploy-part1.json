@@ -2,6 +2,12 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "corporateInternetGatewayIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP Address of the Corporate Internet Gateway."
+            }
+        },
         "databaseAdminPassword": {
             "type": "securestring",
             "metadata": {
@@ -84,15 +90,15 @@
         }
     ],
     "variables": {
-        "applicationNetworkSecurityGroupName": "[concat(variables('resourceNamePrefix'), '-APP-PAZ-NSG')]",
+        "applicationNetworkSecurityGroupName": "[concat(variables('resourceNamePrefix'), '-PAZ-APP-NSG')]",
         "applicationSubnetAddressPrefix": "[concat(parameters('virtualNetworkAddressBase'), '.32/27')]",
-        "applicationSubnetName": "[concat(variables('resourceNamePrefix'), '-APP-PAZ-SN')]",
+        "applicationSubnetName": "[concat(variables('resourceNamePrefix'), '-PAZ-APP-SN')]",
         "bastionName": "[concat(variables('resourceNamePrefix'), '-BH')]",
         "bastionPublicIpName": "[concat(variables('bastionName'), '-PublicIP')]",
         "bastionSubnetAddressPrefix": "[concat(parameters('virtualNetworkAddressBase'), '.128/27')]",
         "bastionSubnetName": "AzureBastionSubnet",
         "databaseApplicationDatabaseName": "[tolower(custom.cleanName(parameters('projectName')))]",
-        "databaseBackupRetentionDays": "[if(equals(parameters('environmentName'), 'dev'), '7', '28')]",
+        "databaseBackupRetentionDays": "35",
         "databaseName": "[concat(variables('resourceNamePrefix'), '-DB')]",
         "gatewayBackendAddressPoolName": "moodle-vmss",
         "gatewayBackendHttpSettingsCollectionName": "[concat(parameters('projectName'), '-HTTP-Settings')]",
@@ -103,7 +109,7 @@
         "gatewayHttpListenersHttpName": "HTTP-Listener",
         "gatewayHttpListenersHttpsName": "HTTPS-Listener",
         "gatewayName": "[concat(variables('resourceNamePrefix'), '-AG')]",
-        "gatewayNetworkSecurityGroupName": "[concat(variables('gatewayName'), '-PAZ-NSG')]",
+        "gatewayNetworkSecurityGroupName": "[concat(variables('resourceNamePrefix'), '-PAZ-AG-NSG')]",
         "gatewayPublicIpDomainNameLabel": "[tolower(concat(variables('resourceNamePrefix')))]",
         "gatewayPublicIpName": "[concat(variables('gatewayName'), '-PublicIP')]",
         "gatewayRedirectConfigurationsName": "HTTP-Redirect",
@@ -111,15 +117,15 @@
         "gatewayRequestRoutingRuleHttpsName": "HTTPS-Rule",
         "gatewaySslCertificateHttpsName": "HTTPS-Certificate",
         "gatewaySubnetAddressPrefix": "[concat(parameters('virtualNetworkAddressBase'), '.0/27')]",
-        "gatewaySubnetName": "[concat(variables('gatewayName'), '-PAZ-SN')]",
+        "gatewaySubnetName": "[concat(variables('resourceNamePrefix'), '-PAZ-AG-SN')]",
         "moodleFileServiceName": "Default",
         "moodleShareName": "moodledata",
-        "moodleStorageAccountName": "[tolower(concat(take(custom.cleanName(parameters('projectName')), 13), take(parameters('environmentName'), 4), 'datasa'))]",
+        "moodleStorageAccountName": "[tolower(concat(take(custom.cleanName(parameters('projectName')), 13), if(equals(parameters('environmentName'), 'prod'), '', take(parameters('environmentName'), 4)), 'datasa'))]",
         "redisName": "[concat(variables('resourceNamePrefix'), '-Redis')]",
-        "redisNetworkSecurityGroupName": "[concat(variables('redisName'),'-PAZ-NSG')]",
+        "redisNetworkSecurityGroupName": "[concat(variables('resourceNamePrefix'),'-PAZ-Redis-NSG')]",
         "redisSubnetAddressPrefix": "[concat(parameters('virtualNetworkAddressBase'), '.96/27')]",
-        "redisSubnetName": "[concat(variables('redisName'), '-PAZ-SN')]",
-        "resourceNamePrefix" : "[concat(parameters('projectName'), '-', toupper(parameters('environmentName')))]",
+        "redisSubnetName": "[concat(variables('resourceNamePrefix'), '-PAZ-Redis-SN')]",
+        "resourceNamePrefix" : "[if(equals(parameters('environmentName'), 'prod'), parameters('projectName'), concat(parameters('projectName'), '-', toupper(parameters('environmentName'))))]",
         "virtualNetworkAddressPrefix": "[concat(parameters('virtualNetworkAddressBase'), '.0/24')]",
         "virtualNetworkName": "[concat(variables('resourceNamePrefix'), '-VN')]"
     },
@@ -264,7 +270,7 @@
             "properties": {
                 "securityRules": [
                     {
-                        "name": "AllowPublicInternetInBound",
+                        "name": "AllowPublicInternet_Any_80_443",
                         "properties": {
                             "protocol": "*",
                             "sourcePortRange": "*",
@@ -283,16 +289,51 @@
                         }
                     },
                     {
-                        "name": "AllowGatewayManagerInBound",
+                        "name": "AllowGatewayManager_TCP_65200-65535",
                         "properties": {
-                            "description": "Voir https://docs.microsoft.com/en-us/azure/application-gateway/configuration-overview",
-                            "protocol": "*",
+                            "description": "https://docs.microsoft.com/en-us/azure/application-gateway/configuration-overview#network-security-groups-on-the-application-gateway-subnet",
+                            "protocol": "TCP",
                             "sourcePortRange": "*",
                             "destinationPortRange": "65200-65535",
                             "sourceAddressPrefix": "GatewayManager",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
                             "priority": 110,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancer_Any_Any",
+                        "properties": {
+                            "description": "https://docs.microsoft.com/en-us/azure/application-gateway/configuration-overview#network-security-groups-on-the-application-gateway-subnet",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "DenyAllOtherTraffic",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 4096,
                             "direction": "Inbound",
                             "sourcePortRanges": [],
                             "destinationPortRanges": [],
@@ -517,9 +558,9 @@
             "properties": {
                 "securityRules": [
                     {
-                        "name": "AllowApplicationGatewayInbound",
+                        "name": "[concat('Allow', variables('gatewayName'), '_TCP_80')]",
                         "properties": {
-                            "protocol": "*",
+                            "protocol": "TCP",
                             "sourcePortRange": "*",
                             "sourceAddressPrefix": "[variables('gatewaySubnetAddressPrefix')]",
                             "destinationAddressPrefix": "*",
@@ -530,6 +571,57 @@
                             "destinationPortRanges": [
                                 "80"
                             ],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "[concat('Allow', variables('bastionName'), '_TCP_22')]",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "[variables('bastionSubnetAddressPrefix')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "[concat('Allow', variables('databaseName'), '_TCP_5432')]",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "5432",
+                            "sourceAddressPrefix": "[variables('applicationSubnetAddressPrefix')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "DenyAllOtherTraffic",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 4096,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
                             "sourceAddressPrefixes": [],
                             "destinationAddressPrefixes": []
                         }
@@ -564,7 +656,7 @@
                     ],
                     "ipRules": [
                         {
-                            "value": "198.103.180.1/24",
+                            "value": "[parameters('corporateInternetGatewayIpAddress')]",
                             "action": "Allow"
                         }
                     ],
@@ -635,6 +727,7 @@
                 },
                 "version": "10",
                 "sslEnforcement": "Enabled",
+                "minimalTlsVersion": "TLS1_2",
                 "createMode": "Default",
                 "administratorLogin": "[parameters('databaseAdminUsername')]",
                 "administratorLoginPassword": "[parameters('databaseAdminPassword')]"
@@ -709,7 +802,295 @@
             "location": "[parameters('location')]",
             "tags": "[parameters('resourceTags')]",
             "properties": {
-                "securityRules": []
+                "securityRules": [
+                     {
+                        "name": "[concat('Allow', variables('redisSubnetName'), '_TCP_6379-6380')]",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "6379-6380",
+                            "sourceAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "[concat('Allow', variables('applicationSubnetName'), '_TCP_6379-6380')]",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "6379-6380",
+                            "sourceAddressPrefix": "[variables('applicationSubnetAddressPrefix')]",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancer_TCP_6379-6380",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "6379-6380",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "[concat('Allow', variables('redisSubnetName'), '_TCP_8443')]",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "8443",
+                            "sourceAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 200,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancer_TCP_8500",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "8500",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 300,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancer_UDP_8500",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "UDP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "8500",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 310,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "[concat('Allow', variables('redisSubnetName'), '_TCP_10221-10231')]",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "10221-10231",
+                            "sourceAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 400,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancer_TCP_10221-10231",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "10221-10231",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 410,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "[concat('Allow', variables('applicationSubnetName'), '_TCP_13000-13999')]",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "13000-13999",
+                            "sourceAddressPrefix": "[variables('applicationSubnetAddressPrefix')]",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 500,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancer_TCP_13000-13999",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "13000-13999",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 510,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "[concat('Allow', variables('applicationSubnetName'), '_TCP_15000-15999')]",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "15000-15999",
+                            "sourceAddressPrefix": "[variables('applicationSubnetAddressPrefix')]",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 600,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancer_TCP_15000-15999",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "15000-15999",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 610,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancer_TCP_16001",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "16001",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 700,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancer_UDP_16001",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "UDP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "16001",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 710,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "[concat('Allow', variables('redisSubnetName'), '_TCP_20226')]",
+                        "properties": {
+                            "description": "Ref.: https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-premium-vnet#inbound-port-requirements",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "20226",
+                            "sourceAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "destinationAddressPrefix": "[variables('redisSubnetAddressPrefix')]",
+                            "access": "Allow",
+                            "priority": 800,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "DenyAllOtherTraffic",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 4096,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
             }
         },
         {

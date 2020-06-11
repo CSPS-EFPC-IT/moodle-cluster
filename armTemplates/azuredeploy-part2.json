@@ -14,6 +14,12 @@
                 "description": "The name of the Virtual Network Subnet where the Virtual Machine Scale Set (hosting the application) is connected to."
             }
         },
+        "corporateInternetGatewayIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP Address of the Corporate Internet Gateway."
+            }
+        },
         "environmentName": {
             "type": "string",
             "defaultValue": "dev",
@@ -114,7 +120,7 @@
     ],
     "variables": {
         "diagnosticBlobServicesName": "Default",
-        "diagnosticStorageAccountName": "[tolower(concat(take(custom.cleanName(parameters('projectName')), 13), take(parameters('environmentName'),4), 'diagsa'))]",
+        "diagnosticStorageAccountName": "[tolower(concat(take(custom.cleanName(parameters('projectName')), 13), if(equals(parameters('environmentName'), 'prod'), '', take(parameters('environmentName'), 4)), 'diagsa'))]",
         "resourceNamePrefix" : "[concat(parameters('projectName'), '-', toupper(parameters('environmentName')))]",
         "vmssName": "[concat(variables('resourceNamePrefix'), '-VMSS')]",
         "vmssVmProfileNetworkInterfaceName": "[concat(variables('vmssName'), '-NIC')]"
@@ -134,9 +140,20 @@
             "properties": {
                 "networkAcls": {
                     "bypass": "AzureServices",
-                    "virtualNetworkRules": [],
-                    "ipRules": [],
-                    "defaultAction": "Allow"
+                    "virtualNetworkRules": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('applicationSubnetName'))]",
+                            "action": "Allow",
+                            "state": "Succeeded"
+                        }
+                    ],
+                    "ipRules": [
+                        {
+                            "value": "[parameters('corporateInternetGatewayIpAddress')]",
+                            "action": "Allow"
+                        }
+                    ],
+                    "defaultAction": "Deny"
                 },
                 "supportsHttpsTrafficOnly": true,
                 "encryption": {

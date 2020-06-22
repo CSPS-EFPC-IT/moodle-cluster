@@ -2,6 +2,12 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "armTemplateRepoBaseUrl": {
+            "type": "string",
+            "metadata": {
+                "description": "The base URL of the Azure Resource Manager template repository."
+            }
+        },
         "corporateInternetGatewayIpAddress": {
             "type": "string",
             "metadata": {
@@ -97,6 +103,7 @@
         "bastionPublicIpName": "[concat(variables('bastionName'), '-PublicIP')]",
         "bastionSubnetAddressPrefix": "[concat(parameters('virtualNetworkAddressBase'), '.128/27')]",
         "bastionSubnetName": "AzureBastionSubnet",
+        "dailyBackupPolicyDeploymentName": "dailyBackupPolicyDeployment",
         "databaseApplicationDatabaseName": "[tolower(custom.cleanName(parameters('projectName')))]",
         "databaseBackupRetentionDays": "35",
         "databaseName": "[concat(variables('resourceNamePrefix'), '-DB')]",
@@ -121,6 +128,7 @@
         "moodleFileServiceName": "Default",
         "moodleShareName": "moodledata",
         "moodleStorageAccountName": "[tolower(concat(take(custom.cleanName(parameters('projectName')), 13), if(equals(parameters('environmentName'), 'prod'), '', take(parameters('environmentName'), 4)), 'datasa'))]",
+        "recoveryServiceVaultDeploymentName": "recoveryServiceVaultDeployment",
         "redisName": "[concat(variables('resourceNamePrefix'), '-Redis')]",
         "redisNetworkSecurityGroupName": "[concat(variables('resourceNamePrefix'),'-PAZ-Redis-NSG')]",
         "redisSubnetAddressPrefix": "[concat(parameters('virtualNetworkAddressBase'), '.96/27')]",
@@ -629,6 +637,7 @@
                 ]
             }
         },
+
         {
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2019-06-01",
@@ -706,6 +715,58 @@
                 "shareQuota": 1024
             }
         },
+
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
+            "name": "[variables('recoveryServiceVaultDeploymentName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/fileServices/shares', variables('moodleStorageAccountName'), variables('moodleFileServiceName'), variables('moodleShareName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri":"[concat(parameters('armTemplateRepoBaseUrl'), '/Recovery%20Services%20Vault/VaultDeploy.json')]"
+                },
+                "parameters": {
+                    "projectName":{
+                        "value": "[parameters('projectName')]"
+                    },
+                    "environmentName":{
+                        "value": "[parameters('environmentName')]"
+                        },
+                    "resourceTags": {
+                        "value": "[parameters('resourceTags')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
+            "name": "[variables('dailyBackupPolicyDeploymentName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', variables('recoveryServiceVaultDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri":"[concat(parameters('armTemplateRepoBaseUrl'), '/Recovery%20Services%20Vault/Azure%20File%20Share%20Backup/FileShareDailyPolicyDeploy.json')]"
+                },
+                "parameters": {
+                    "vaultName":{
+                        "value": "[reference(variables('recoveryServiceVaultDeploymentName')).outputs.vaultName.value]"
+                    },
+                    "dailyBackupsRetention":{
+                        "value": 90
+                        },
+                    "backupTime":{
+                        "value": "00:00"
+                    }
+                }
+            }
+        },
+
         {
             "type": "Microsoft.DBforPostgreSQL/servers",
             "apiVersion": "2017-12-01",

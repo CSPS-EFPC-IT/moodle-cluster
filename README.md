@@ -20,35 +20,12 @@ Deployed the required resources in Azure Cloud to operate a scalable Moodle clus
 `templateFile="armTemplate/azureDeploy-part1.json"`\
 `paramterFile="armTemplates/azureDeploy-part1.parameters.json"`\
 `az deployment group create --name $deploymentName --resource-group $resourceGroupName --template-file $templateFile --parameter @$parameterFile --verbose`
-    
+
 ## Step 2 - Create a virtal machine image from the latest version of Moodle 3.8
 
 1) Edit and run the following commands:\
-`databaseAdminPassword="[Use the corresponding value used as input for part 1]"`\
-`databaseAdminUsername="[Use the corresponding value used as input for part 1]"`\
-`databaseMoodlePassword="[A secret password]"`\
-`databaseMoodleUsername="[A username]"`\
-`fileRepositoryUri="https://raw.githubusercontent.com/CSPS-EFPC-IT/moodle-cluster"`\
-`gateway_publicIp_fqdn="[Use the corresponding value returned as output by part 1]"`\
-`moodleAdminEmail="[An email address]"`\
-`moodleAdminPassword="[A secret password]"`\
-`moodleAdminUsername="[A username]"`\
-`moodle_share_name="[Use the corresponding value returned as output from part 1]"`\
-`moodle_storageAccount_key="[Use the corresponding value returned as output from part 1]"`\
-`moodle_storageAccount_name="[Use the corresponding value returned as output from part 1]"`\
-`paz_networkSecurityGroup_name="[Use the corresponding value returned as output from part 1]"`\
-`paz_subnet_name="[Use the corresponding value returned as output from part 1]"`\
-`postgresql_moodleDb_name="[Use the corresponding value returned as output from part 1]"`\
-`postgresql_name="[Use the corresponding value returned as output from part 1]"`\
-`redis_name="[Use the corresponding value returned as output from part 1]"`\
-`redis_primarykey="[Use the corresponding value returned as output from part 1]"`\
-`resourceGroup="[Use the corresponding value used as input to part 1]"`\
-`virtualNetwork_name="[Use the corresponding value returned as output from part 1]"`\
-`webServerAdminPassword="[A secret password]"`\
-`webServerAdminUsername="[A username]"`\
-`vmName="[A base name for the virtual machine image]"`\
-`vmImageName="${vmName}-Image"`\
-`scripts/create_vm_image.sh $databaseAdminPassword $databaseAdminUsername $databaseMoodlePassword $databaseMoodleUsername $fileRepositoryUri $gateway_publicIp_fqdn $moodleAdminEmail $moodleAdminPassword $moodleAdminUsername $moodle_share_name $moodle_storageAccount_key $moodle_storageAccount_name $paz_networkSecurityGroup_name $paz_subnet_name $postgresql_moodleDb_name $postgresql_name $redis_name $redis_primarykey $resourceGroup $virtualNetwork_name $webServerAdminPassword $webServerAdminUsername $vmName $vmImageName`
+1) Adapt and run the following commands:\
+`scripts/create_vm_image.sh -applicationSubnetName "[Use the corresponding value returned as output from part 1]" databaseAdminPassword="[Use the corresponding value used as input for part 1]" -databaseAdminUsername "[Use the corresponding value used as input for part 1]" -databaseApplicationDatabaseName "[Use the corresponding value output from part 1]" -databaseMoodlePassword "[A secret password]" -databaseMoodleUsername "[A username]" -databaseFqdn "[Use the corresponding value returned as output from part 1]" - databaseName "[Use the corresponding value returned as output from part 1]" -fileRepositoryUri "[Use the corresponding value used  as input from part 1]" -gatewayPublicIpFqdn "[Use the corresponding value returned as output from part 1]" -moodleAdminEmail "[An email address]" -moodleAdminPassword "[A secret password]" -moodleAdminUsername "[A username]" -moodleShareName "[Use the corresponding value returned as output from part 1]" moodleStorageAccountFilePrimaryEndPoint "[Use the corresponding value returned as output from part 1]" -moodleStorageAccountKey "[Use the corresponding value returned as output from part 1]" -moodleStorageAccountName "[Use the corresponding value returned as output from part 1]" -moodleUpgradeKey "[A secret Moodle upgrade key] -redisHostName "[Use the corresponding value returned as output from part 1]" -redisName "[Use the corresponding value returned as output from part 1]" redisPrimaryKey "[Use the corresponding value returned as output from part 1]" -resourceGroupName "The same resource group name used in part 1" -virtualNetworkName "[Use the corresponding value returned as output from part 1]" -vmImageName "[something]-$(date +'%Y%m%dT%H%M%S%Z')-VM-Image" -vmName "[something]-$(date +'%Y%m%dT%H%M%S%Z')-VM" -webServerAdminPassword "[A password]" -webServerAdminUsername "[A username]"`
 
 ## Step 3 - Create the infrastructure (Part 2/2)
 

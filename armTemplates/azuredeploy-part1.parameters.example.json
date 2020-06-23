@@ -2,6 +2,9 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "armTemplateRepoBaseUrl": {
+            "value": "https://raw.githubusercontent.com/CSPS-EFPC-IT/SysAdmins-ARMTemplates/master"
+        },
         "corporateInternetGatewayIpAddress" : {
             "value": "[Your Corporate Internet Gateway IP Address]"
         },

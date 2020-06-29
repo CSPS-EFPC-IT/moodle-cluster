@@ -274,6 +274,18 @@ echo "Done."
 ###############################################################################
 echo_title "Run Moodle Installer."
 ###############################################################################
+# Assess whether the moodle tables already exist.
+# If yes the add the "--skip-database" option to the install script.
+export PGPASSWORD="${parameters[dbServerAdminPassword]}"
+tablePrefix='mdl_'
+if [[ $(psql "host=${parameters[dbServerFqdn]} port=5432 user=${parameters[moodleDbUsername]}@${parameters[dbServerName]} dbname=${parameters[moodleDbName]} sslmode=require" --tuples-only --command="select count(*) from information_schema.tables where table_catalog='${parameters[moodleDbName]}' and table_name like '${tablePrefix}%';") -eq 0 ]]; then 
+    echo 'Moodle tables NOT found in database. Database must be setup as part of the install.'
+    skipDatabaseOption=''
+else
+    echo 'Moodle tables found in database. Skipping database setup.'
+    skipDatabaseOption='--skip-database'
+fi
+
 sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRoot}/admin/cli/install.php \
 --non-interactive \
 --lang=en \
@@ -283,7 +295,7 @@ sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRoot}/admin/cli/install.php 
 --dbtype=pgsql \
 --dbhost=${parameters[dbServerFqdn]} \
 --dbname=${parameters[moodleDbName]} \
---prefix=mdl_ \
+--prefix=$tablePrefix \
 --dbport=5432 \
 --dbuser=${parameters[moodleDbUsername]}@${parameters[dbServerName]} \
 --dbpass="${parameters[moodleDbPassword]}" \
@@ -294,6 +306,7 @@ sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRoot}/admin/cli/install.php 
 --adminpass="${parameters[moodleAdminPassword]}" \
 --adminemail=${parameters[moodleAdminEmail]} \
 --upgradekey=${parameters[moodleUpgradeKey]} \
+${skipDatabaseOption} \
 --agree-license
 
 ###############################################################################

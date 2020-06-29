@@ -277,10 +277,11 @@ echo "Done."
 echo_title "Run Moodle Installer."
 ###############################################################################
 # Assess whether the moodle tables already exist.
-# If yes the add the "--skip-database" option to the install script.
+# If yes then add the "--skip-database" option to the install script.
 export PGPASSWORD="${parameters[dbServerAdminPassword]}"
 tablePrefix='mdl_'
-if [[ $(psql "host=${parameters[dbServerFqdn]} port=5432 user=${parameters[moodleDbUsername]}@${parameters[dbServerName]} dbname=${parameters[moodleDbName]} sslmode=require" --tuples-only --command="select count(*) from information_schema.tables where table_catalog='${parameters[moodleDbName]}' and table_name like '${tablePrefix}%';") -eq 0 ]]; then 
+tableCount=$(psql "host=${parameters[dbServerFqdn]} port=5432 user=${parameters[dbServerAdminUsername]}@${parameters[dbServerName]} dbname=${parameters[moodleDbName]} sslmode=require" --tuples-only --command="select count(*) from information_schema.tables where table_catalog='${parameters[moodleDbName]}' and table_name like '${tablePrefix}%'")
+if [[ $tableCount -eq 0 ]]; then
     echo 'Moodle tables NOT found in database. Database must be setup as part of the install.'
     skipDatabaseOption=''
 else

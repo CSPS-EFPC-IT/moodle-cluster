@@ -218,7 +218,7 @@ echo_title "Download and extract Moodle files and plugins."
 ###############################################################################
 echo "Downloading Moodle 3.8.3+ tar file..."
 # wget https://download.moodle.org/download.php/direct/stable38/moodle-latest-38.tgz
-wget https://download.moodle.org/download.php/stable38/moodle-3.8.3.tgz
+wget https://download.moodle.org/download.php/direct/stable38/moodle-3.8.3.tgz
 echo "Extracting moodle tar file..."
 if [ -d ${moodleDocumentRoot} ]; then
     echo "Deleting old ${moodleDocumentRoot} folder..."

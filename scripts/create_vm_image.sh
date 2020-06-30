@@ -9,9 +9,9 @@ trap 'echo "\"${last_command}\" command failed with exit code $?."' EXIT
 
 ################################################################################
 echo 'Initialize expected parameters array...'
-declare -A parameters=( [applicationNetworkSecurityGroupName]= \
+declare -A parameters=( [applicationFqdn]= \
+                        [applicationNetworkSecurityGroupName]= \
                         [applicationSubnetName]= \
-                        [customApplicationFqdn]= \
                         [databaseAdminPassword]= \
                         [databaseAdminUsername]= \
                         [databaseApplicationDatabaseName]= \
@@ -20,7 +20,6 @@ declare -A parameters=( [applicationNetworkSecurityGroupName]= \
                         [databaseFqdn]= \
                         [databaseName]= \
                         [fileRepositoryUri]= \
-                        [gatewayPublicIpFqdn]= \
                         [moodleAdminEmail]= \
                         [moodleAdminPassword]= \
                         [moodleAdminUsername]= \
@@ -60,9 +59,8 @@ do
 done
 
 echo "Checking for missing parameters..."
-# Only the "customApplicationFqdn" parameter can be set to an empty string.
 for p in $sortedParameterList; do
-    if [[ -z ${parameters[$p]} && $p != "customApplicationFqdn" ]]; then
+    if [[ -z ${parameters[$p]} ]]; then
         echo "ERROR: Missing parameter: $p."
         missingParameterFlag=true;
     fi
@@ -103,12 +101,6 @@ az vm create \
 
 ################################################################################
 echo "Running VM extension to install moodle..."
-# Set moodle FQDN to Application Gateway Public IP FQDN if no Custom Application FQDN specified.
-if [[ -z ${parameters[customApplicationFqdn]} ]]; then
-    moodleFqdn=${parameters[gatewayPublicIpFqdn]}
-else
-    moodleFqdn=${parameters[customApplicationFqdn]}
-fi
 az vm extension set \
     --resource-group "${parameters[resourceGroupName]}" \
     --vm-name "${parameters[vmName]}" \
@@ -136,7 +128,7 @@ az vm extension set \
                 -moodleDbName ${parameters[databaseApplicationDatabaseName]} \
                 -moodleDbPassword ${parameters[databaseMoodlePassword]} \
                 -moodleDbUsername ${parameters[databaseMoodleUsername]} \
-                -moodleFqdn ${moodleFqdn} \
+                -moodleFqdn ${parameters[applicationFqdn]} \
                 -moodleUpgradeKey ${parameters[moodleUpgradeKey]} \
                 -redisHostName ${parameters[redisHostName]} \
                 -redisName ${parameters[redisName]} \

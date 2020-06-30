@@ -25,9 +25,9 @@ echo_title "Map input parameters."
 fileShareName="$1"
 
 ###############################################################################
-echo_title "Recreate moodledata mount point."
+echo_title "Recreate moodledata mount point, if missing."
 ###############################################################################
-mkdir /mnt/${fileShareName}
+mkdir -p "/mnt/${fileShareName}"
 
 ###############################################################################
 echo_title "Mount all storages."

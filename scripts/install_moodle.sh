@@ -216,14 +216,14 @@ echo "Done."
 ###############################################################################
 echo_title "Download and extract Moodle files and plugins."
 ###############################################################################
-echo "Downloading Moodle 3.8.3 tar file..."
-wget https://download.moodle.org/download.php/direct/stable38/moodle-3.8.3.tgz
+echo "Downloading Moodle 3.8.3+ tar file..."
+wget https://download.moodle.org/download.php/direct/stable38/moodle-latest-38.tgz
 echo "Extracting moodle tar file..."
 if [ -d ${moodleDocumentRoot} ]; then
     echo "Deleting old ${moodleDocumentRoot} folder..."
     rm -rf ${moodleDocumentRoot}
 fi
-tar zxfv moodle-3.8.3.tgz -C ${defaultDocumentRoot}
+tar zxfv moodle-latest-38.tgz -C ${defaultDocumentRoot}
 
 echo "Downloading Multi-Language Content (v2) plugin zip file..."
 wget https://moodle.org/plugins/download.php/20674/filter_multilang2_moodle38_2019111900.zip
@@ -274,6 +274,19 @@ echo "Done."
 ###############################################################################
 echo_title "Run Moodle Installer."
 ###############################################################################
+# Assess whether the moodle tables already exist.
+# If yes then add the "--skip-database" option to the install script.
+export PGPASSWORD="${parameters[dbServerAdminPassword]}"
+tablePrefix='mdl_'
+tableCount=$(psql "host=${parameters[dbServerFqdn]} port=5432 user=${parameters[dbServerAdminUsername]}@${parameters[dbServerName]} dbname=${parameters[moodleDbName]} sslmode=require" --tuples-only --command="select count(*) from information_schema.tables where table_catalog='${parameters[moodleDbName]}' and table_name like '${tablePrefix}%'")
+if [[ $tableCount -eq 0 ]]; then
+    echo 'Moodle tables NOT found in database. Database must be setup as part of the install.'
+    skipDatabaseOption=''
+else
+    echo 'Moodle tables found in database. Skipping database setup.'
+    skipDatabaseOption='--skip-database'
+fi
+
 sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRoot}/admin/cli/install.php \
 --non-interactive \
 --lang=en \
@@ -283,7 +296,7 @@ sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRoot}/admin/cli/install.php 
 --dbtype=pgsql \
 --dbhost=${parameters[dbServerFqdn]} \
 --dbname=${parameters[moodleDbName]} \
---prefix=mdl_ \
+--prefix=$tablePrefix \
 --dbport=5432 \
 --dbuser=${parameters[moodleDbUsername]}@${parameters[dbServerName]} \
 --dbpass="${parameters[moodleDbPassword]}" \
@@ -294,6 +307,7 @@ sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRoot}/admin/cli/install.php 
 --adminpass="${parameters[moodleAdminPassword]}" \
 --adminemail=${parameters[moodleAdminEmail]} \
 --upgradekey=${parameters[moodleUpgradeKey]} \
+${skipDatabaseOption} \
 --agree-license
 
 ###############################################################################

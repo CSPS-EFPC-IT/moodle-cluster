@@ -11,6 +11,7 @@ trap 'echo "\"${last_command}\" command failed with exit code $?."' EXIT
 echo 'Initialize expected parameters array...'
 declare -A parameters=( [applicationNetworkSecurityGroupName]= \
                         [applicationSubnetName]= \
+                        [customApplicationFqdn]= \
                         [databaseAdminPassword]= \
                         [databaseAdminUsername]= \
                         [databaseApplicationDatabaseName]= \
@@ -59,8 +60,9 @@ do
 done
 
 echo "Checking for missing parameters..."
+# Only the "customApplicationFqdn" parameter can be set to an empty string.
 for p in $sortedParameterList; do
-    if [[ -z ${parameters[$p]} ]]; then
+    if [[ -z ${parameters[$p]} && $p != "customApplicationFqdn" ]]; then
         echo "ERROR: Missing parameter: $p."
         missingParameterFlag=true;
     fi
@@ -101,6 +103,12 @@ az vm create \
 
 ################################################################################
 echo "Running VM extension to install moodle..."
+# Set moodle FQDN to Application Gateway Public IP FQDN if no Custom Application FQDN specified.
+if [[ -z ${parameters[customApplicationFqdn]} ]]; then
+    moodleFqdn=${parameters[gatewayPublicIpFqdn]}
+else
+    moodleFqdn=${parameters[customApplicationFqdn]}
+fi
 az vm extension set \
     --resource-group "${parameters[resourceGroupName]}" \
     --vm-name "${parameters[vmName]}" \
@@ -128,7 +136,7 @@ az vm extension set \
                 -moodleDbName ${parameters[databaseApplicationDatabaseName]} \
                 -moodleDbPassword ${parameters[databaseMoodlePassword]} \
                 -moodleDbUsername ${parameters[databaseMoodleUsername]} \
-                -moodleFqdn ${parameters[gatewayPublicIpFqdn]} \
+                -moodleFqdn ${moodleFqdn} \
                 -moodleUpgradeKey ${parameters[moodleUpgradeKey]} \
                 -redisHostName ${parameters[redisHostName]} \
                 -redisName ${parameters[redisName]} \
@@ -192,3 +200,4 @@ az disk delete \
 ################################################################################
 echo "Done"
 ################################################################################
+trap - EXIT

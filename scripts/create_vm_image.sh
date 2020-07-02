@@ -9,7 +9,8 @@ trap 'echo "\"${last_command}\" command failed with exit code $?."' EXIT
 
 ################################################################################
 echo 'Initialize expected parameters array...'
-declare -A parameters=( [applicationNetworkSecurityGroupName]= \
+declare -A parameters=( [applicationFqdn]= \
+                        [applicationNetworkSecurityGroupName]= \
                         [applicationSubnetName]= \
                         [databaseAdminPassword]= \
                         [databaseAdminUsername]= \
@@ -19,7 +20,6 @@ declare -A parameters=( [applicationNetworkSecurityGroupName]= \
                         [databaseFqdn]= \
                         [databaseName]= \
                         [fileRepositoryUri]= \
-                        [gatewayPublicIpFqdn]= \
                         [moodleAdminEmail]= \
                         [moodleAdminPassword]= \
                         [moodleAdminUsername]= \
@@ -128,7 +128,7 @@ az vm extension set \
                 -moodleDbName ${parameters[databaseApplicationDatabaseName]} \
                 -moodleDbPassword ${parameters[databaseMoodlePassword]} \
                 -moodleDbUsername ${parameters[databaseMoodleUsername]} \
-                -moodleFqdn ${parameters[gatewayPublicIpFqdn]} \
+                -moodleFqdn ${parameters[applicationFqdn]} \
                 -moodleUpgradeKey ${parameters[moodleUpgradeKey]} \
                 -redisHostName ${parameters[redisHostName]} \
                 -redisName ${parameters[redisName]} \
@@ -192,3 +192,4 @@ az disk delete \
 ################################################################################
 echo "Done"
 ################################################################################
+trap - EXIT

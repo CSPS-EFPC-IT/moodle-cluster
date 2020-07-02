@@ -12,13 +12,13 @@ Deployed the required resources in Azure Cloud to operate a scalable Moodle clus
 
 ## Step 1 - Create the infrastructure (Part 1/2)
 
-1) Create a new file named *armTemplates/azureDeploy-part1.paramters.json* based on the *armTemplates/azureDeploy-part1.parameters.example.json* file.
-1) Edit the new _azureDeploy-part1.paramters.json_ file to your liking.
+1) Create a new file named *armTemplates/azureDeploy-part1.parameters.json* based on the *armTemplates/azureDeploy-part1.parameters.example.json* file.
+1) Edit the new _azureDeploy-part1.parameters.json_ file to your need.
 1) Adapt and run the following commands:\
 `deploymentName="MyDeploymentPart1"`\
 `resourceGroupName="[Your resource Group name]"`\
 `templateFile="armTemplate/azureDeploy-part1.json"`\
-`paramterFile="armTemplates/azureDeploy-part1.parameters.json"`\
+`parameterFile="armTemplates/azureDeploy-part1.parameters.json"`\
 `az deployment group create --name $deploymentName --resource-group $resourceGroupName --template-file $templateFile --parameter @$parameterFile --verbose`
 
 ## Step 2 - Create a virtual machine image from the latest version of Moodle 3.8
@@ -28,11 +28,11 @@ Deployed the required resources in Azure Cloud to operate a scalable Moodle clus
 
 ## Step 3 - Create the infrastructure (Part 2/2)
 
-1) Create a new file named _armTemplates/azureDeploy-part2.paramters.json_ based on the _armTemplates/azureDeploy-part2.parameters.example.json_ file.
-1) Edit the new _azureDeploy-part2.paramters.json_ file to your liking.
+1) Create a new file named _armTemplates/azureDeploy-part2.parameters.json_ based on the _armTemplates/azureDeploy-part2.parameters.example.json_ file.
+1) Edit the new _azureDeploy-part2.parameters.json_ file to your need.
 1) Adapt and Run the following commands:\
 `deploymentName="MyDeploymentPart2"`\
 `resourceGroupName="[Your resource Group name]"`\
 `templateFile="armTemplate/azureDeploy-part2.json"`\
-`paramterFile="armTemplates/azureDeploy-part2.parameters.json"`\
-`az deployment group create --name MyDeployment-part2 --resource-group $myResourceGroup --template-file armTemplate/azuredeploy-part2.json --parameter armTemplate/azuredeploy-part2.paramters.json --verbose`
+`parameterFile="armTemplates/azureDeploy-part2.parameters.json"`\
+`az deployment group create --name MyDeployment-part2 --resource-group $myResourceGroup --template-file armTemplate/azuredeploy-part2.json --parameter armTemplate/azuredeploy-part2.parameters.json --verbose`

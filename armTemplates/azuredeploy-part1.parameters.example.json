@@ -31,12 +31,6 @@
         "projectName": {
             "value": "XYZ"
         },
-        "resourceTags": {
-            "value": {
-                "Contact": "John Doe",
-                "Project": "XYZ"
-            }
-        },
         "virtualNetworkAddressBase": {
             "value": "10.10.10"
         }

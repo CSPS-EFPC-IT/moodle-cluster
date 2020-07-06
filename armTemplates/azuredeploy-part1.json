@@ -63,12 +63,6 @@
                 "description": "The name of the project. This string will be used to name all resources required. It may only contain letters, hyphens and underscore characters."
             }
         },
-        "resourceTags": {
-            "type": "object",
-            "metadata": {
-                "description": "Tags added to each resource created."
-            }
-        },
         "virtualNetworkAddressBase": {
             "type": "string",
             "metadata": {
@@ -142,7 +136,6 @@
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2019-11-01",
             "name": "[variables('virtualNetworkName')]",
-            "tags": "[parameters('resourceTags')]",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('gatewayNetworkSecurityGroupName'))]",
@@ -229,7 +222,6 @@
             "type": "Microsoft.Network/publicIPAddresses",
             "apiVersion": "2019-11-01",
             "name": "[variables('bastionPublicIpName')]",
-            "tags": "[parameters('resourceTags')]",
             "location": "[parameters('location')]",
             "sku": {
                 "name": "Standard"
@@ -245,7 +237,6 @@
             "type": "Microsoft.Network/bastionHosts",
             "apiVersion": "2019-11-01",
             "name": "[variables('bastionName')]",
-            "tags": "[parameters('resourceTags')]",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIPAddresses', variables('bastionPublicIpName'))]",
@@ -274,7 +265,6 @@
             "apiVersion": "2019-11-01",
             "name": "[variables('gatewayNetworkSecurityGroupName')]",
             "location": "[parameters('location')]",
-            "tags": "[parameters('resourceTags')]",
             "properties": {
                 "securityRules": [
                     {
@@ -356,7 +346,6 @@
             "type": "Microsoft.Network/publicIPAddresses",
             "apiVersion": "2019-11-01",
             "name": "[variables('gatewayPublicIpName')]",
-            "tags": "[parameters('resourceTags')]",
             "location": "[parameters('location')]",
             "sku": {
                 "name": "Standard"
@@ -376,7 +365,6 @@
             "apiVersion": "2019-11-01",
             "name": "[variables('gatewayName')]",
             "location": "[parameters('location')]",
-            "tags": "[parameters('resourceTags')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
                 "[resourceId('Microsoft.Network/publicIPAddresses', variables('gatewayPublicIpName'))]"
@@ -562,7 +550,6 @@
             "apiVersion": "2019-11-01",
             "name": "[variables('applicationNetworkSecurityGroupName')]",
             "location": "[parameters('location')]",
-            "tags": "[parameters('resourceTags')]",
             "properties": {
                 "securityRules": [
                     {
@@ -642,7 +629,6 @@
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2019-06-01",
             "name": "[variables('moodleStorageAccountName')]",
-            "tags": "[parameters('resourceTags')]",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
@@ -734,9 +720,6 @@
                     },
                     "environmentName":{
                         "value": "[parameters('environmentName')]"
-                        },
-                    "resourceTags": {
-                        "value": "[parameters('resourceTags')]"
                     }
                 }
             }
@@ -771,7 +754,6 @@
             "type": "Microsoft.DBforPostgreSQL/servers",
             "apiVersion": "2017-12-01",
             "name": "[variables('databaseName')]",
-            "tags": "[parameters('resourceTags')]",
             "location": "[parameters('location')]",
             "sku": {
                 "name": "GP_Gen5_4",
@@ -861,7 +843,6 @@
             "apiVersion": "2019-11-01",
             "name": "[variables('redisNetworkSecurityGroupName')]",
             "location": "[parameters('location')]",
-            "tags": "[parameters('resourceTags')]",
             "properties": {
                 "securityRules": [
                      {
@@ -1159,7 +1140,6 @@
             "apiVersion": "2019-07-01",
             "name": "[variables('redisName')]",
             "location": "[parameters('location')]",
-            "tags": "[parameters('resourceTags')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
             ],

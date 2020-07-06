@@ -68,12 +68,6 @@
                 "description": "The name of the project. This string will be used to name all resources required. It may only contain letters, hyphens and underscore characters."
             }
         },
-        "resourceTags": {
-            "type": "object",
-            "metadata": {
-                "description": "Tags added to each resource created."
-            }
-        },
         "virtualNetworkName": {
             "type": "string",
             "metadata": {
@@ -130,7 +124,6 @@
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2019-06-01",
             "name": "[variables('diagnosticStorageAccountName')]",
-            "tags": "[parameters('resourceTags')]",
             "location": "[parameters('location')]",
             "sku": {
                 "name": "Standard_LRS",
@@ -195,7 +188,6 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('diagnosticStorageAccountName'), variables('diagnosticBlobServicesName'))]"
             ],
-            "tags": "[parameters('resourceTags')]",
             "location": "[parameters('location')]",
             "sku": {
                 "name": "Standard_D2s_v3",

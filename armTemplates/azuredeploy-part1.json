@@ -65,6 +65,7 @@
         },
         "resourceTags": {
             "type": "object",
+            "defaultValue": {},
             "metadata": {
                 "description": "Tags added to each resource created."
             }

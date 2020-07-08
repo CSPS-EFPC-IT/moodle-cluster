@@ -34,8 +34,8 @@
         },
         "resourceTags": {
             "value": {
-                "Contact": "[Match the corresponding value used as input by part 1]",
-                "Project": "[Match the corresponding value used as input by part 1]"
+                "tag1": "tag value 1",
+                "tag2": "tag value 2"
             }
         },
         "virtualNetwork_name": {

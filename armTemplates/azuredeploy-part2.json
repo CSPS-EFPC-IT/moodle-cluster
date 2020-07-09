@@ -189,6 +189,7 @@
                 },
                 "virtualMachineProfile": {
                     "osProfile": {
+                        "computerNamePrefix": "VM-VM_VM",
                         "adminUsername": "[parameters('webServerAdminUsername')]",
                         "adminPassword": "[parameters('webServerAdminPassword')]",
                         "linuxConfiguration": {

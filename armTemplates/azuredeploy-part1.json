@@ -1,5 +1,5 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "armTemplateRepoBaseUrl": {
@@ -41,13 +41,13 @@
         "gatewaySslCertificateUri": {
             "type": "string",
             "metadata": {
-                "description": "The URI of the SSL certificate to deploy in the Application Gateway."
+                "description": "The URI of the SSL Certificate Secret used by the Application Gateway."
             }
         },
         "gatewayUserAssignedIdentity": {
             "type": "object",
             "metadata": {
-                "description": "The User Identity assigned to the Application Gateway."
+                "description": "The User Identity assigned to the Application Gateway to get the SSL Certificat secret."
             }
         },
         "location": {
@@ -57,23 +57,25 @@
                 "description": "The name of the location new resources will be created in."
             }
         },
-        "projectName": {
+        "projectShortName": {
             "type": "string",
+            "minLength": 1,
+            "maxLength": 13,
             "metadata": {
-                "description": "The name of the project. This string will be used to name all resources required. It may only contain letters, hyphens and underscore characters."
+                "description": "The short name of the project. This string will be used to name all resources required. It must only contain letters (a-z,A-Z), hyphens (-) and underscore (_) characters, and must not exceed 13 characters in lenght."
             }
         },
         "resourceTags": {
             "type": "object",
             "defaultValue": {},
             "metadata": {
-                "description": "Tags added to each resource created."
+                "description": "Additional tags to add to each resource created."
             }
         },
         "virtualNetworkAddressBase": {
             "type": "string",
             "metadata": {
-                "description": "The virtual network IP address prefix."
+                "description": "The virtual network IP address prefix. Format is '255.255.255'."
             }
         }
     },
@@ -105,11 +107,11 @@
         "bastionSubnetAddressPrefix": "[concat(parameters('virtualNetworkAddressBase'), '.128/27')]",
         "bastionSubnetName": "AzureBastionSubnet",
         "dailyBackupPolicyDeploymentName": "dailyBackupPolicyDeployment",
-        "databaseApplicationDatabaseName": "[tolower(custom.cleanName(parameters('projectName')))]",
+        "databaseApplicationDatabaseName": "[tolower(custom.cleanName(parameters('projectShortName')))]",
         "databaseBackupRetentionDays": "35",
         "databaseName": "[concat(variables('resourceNamePrefix'), '-DB')]",
         "gatewayBackendAddressPoolName": "moodle-vmss",
-        "gatewayBackendHttpSettingsCollectionName": "[concat(parameters('projectName'), '-HTTP-Settings')]",
+        "gatewayBackendHttpSettingsCollectionName": "[concat(parameters('projectShortName'), '-HTTP-Settings')]",
         "gatewayFrontendIPConfigurationsName": "appGwPublicFrontendIp",
         "gatewayFrontendPortHttpName": "HTTP-Port",
         "gatewayFrontendPortHttpsName": "HTTPS-Port",
@@ -128,13 +130,14 @@
         "gatewaySubnetName": "[concat(variables('resourceNamePrefix'), '-PAZ-AG-SN')]",
         "moodleFileServiceName": "Default",
         "moodleShareName": "moodledata",
-        "moodleStorageAccountName": "[tolower(concat(take(custom.cleanName(parameters('projectName')), 13), if(equals(parameters('environmentName'), 'prod'), '', take(parameters('environmentName'), 4)), 'datasa'))]",
+        "moodleStorageAccountName": "[concat(variables('storageAccountNamePrefix'), 'datasa')]",
         "recoveryServiceVaultDeploymentName": "recoveryServiceVaultDeployment",
         "redisName": "[concat(variables('resourceNamePrefix'), '-Redis')]",
         "redisNetworkSecurityGroupName": "[concat(variables('resourceNamePrefix'),'-PAZ-Redis-NSG')]",
         "redisSubnetAddressPrefix": "[concat(parameters('virtualNetworkAddressBase'), '.96/27')]",
         "redisSubnetName": "[concat(variables('resourceNamePrefix'), '-PAZ-Redis-SN')]",
-        "resourceNamePrefix" : "[if(equals(parameters('environmentName'), 'prod'), parameters('projectName'), concat(parameters('projectName'), '-', toupper(parameters('environmentName'))))]",
+        "resourceNamePrefix" : "[concat(parameters('projectShortName'), if(equals(parameters('environmentName'), 'prod'), '', concat('-', toupper(parameters('environmentName')))))]",
+        "storageAccountNamePrefix": "[tolower(concat(custom.cleanName(parameters('projectShortName')), if(equals(parameters('environmentName'), 'prod'), '', take(parameters('environmentName'),4))))]",
         "virtualNetworkAddressPrefix": "[concat(parameters('virtualNetworkAddressBase'), '.0/24')]",
         "virtualNetworkName": "[concat(variables('resourceNamePrefix'), '-VN')]"
     },
@@ -731,7 +734,7 @@
                 },
                 "parameters": {
                     "projectName":{
-                        "value": "[parameters('projectName')]"
+                        "value": "[parameters('projectShortName')]"
                     },
                     "environmentName":{
                         "value": "[parameters('environmentName')]"
@@ -1241,6 +1244,14 @@
         "redisPrimaryKey": {
             "type": "string",
             "value": "[listKeys(resourceId('Microsoft.Cache/Redis', variables('redisName')), '2019-07-01').primarykey]"
+        },
+        "resourceNamePrefix": {
+            "type": "string",
+            "value": "[variables('resourceNamePrefix')]"
+        },
+        "storageAccountNamePrefix": {
+            "type": "string",
+            "value": "[variables('storageAccountNamePrefix')]"
         },
         "virtualNetworkName": {
             "type": "string",

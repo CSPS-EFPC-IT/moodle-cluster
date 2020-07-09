@@ -1,5 +1,5 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "application_networkSecurityGroup_name": {
@@ -10,9 +10,6 @@
         },
         "corporateInternetGatewayIpAddress" : {
             "value": "[Your Corporate Internet Gateway IP Address]"
-        },
-        "environmentName": {
-            "value": "dev"
         },
         "fileRepositoryUri": {
             "value": "https://raw.githubusercontent.com/CSPS-EFPC-IT/moodle-cluster"
@@ -29,14 +26,17 @@
         "moodle_share_name": {
             "value": "[Match the corresponding value returned as output by part 1]"
         },
-        "projectName": {
-            "value": "[Match the corresponding value used as input by part 1]"
+        "resourceNamePrefix": {
+            "value": "[Use the corresponding value output by part 1]"
         },
         "resourceTags": {
             "value": {
                 "tag1": "tag value 1",
                 "tag2": "tag value 2"
             }
+        },
+        "storageAccountNamePrefix": {
+            "value": "[Use the corresponding value output by part 1]"
         },
         "virtualNetwork_name": {
             "value": "[Match the corresponding value returned as output by part 1]"

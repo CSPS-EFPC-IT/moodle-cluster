@@ -1,5 +1,5 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "applicationNetworkSecurityGroupName": {
@@ -18,18 +18,6 @@
             "type": "string",
             "metadata": {
                 "description": "The IP Address of the Corporate Internet Gateway."
-            }
-        },
-        "environmentName": {
-            "type": "string",
-            "defaultValue": "dev",
-            "allowedValues": [
-                "dev",
-                "staging",
-                "prod"
-            ],
-            "metadata": {
-                "description": "The name of the provisioned environment. Used to build the service DNS name."
             }
         },
         "fileRepositoryUri": {
@@ -53,7 +41,7 @@
         "location": {
             "type": "string",
             "metadata": {
-                "description": "The name of the location new resources will be created in."
+                "description": "The name of the Azure Location where resources will be created."
             }
         },
         "moodleShareName": {
@@ -62,17 +50,23 @@
                 "description": "The name of shared MoodleData folder."
             }
         },
-        "projectName": {
+        "resourceNamePrefix": {
             "type": "string",
             "metadata": {
-                "description": "The name of the project. This string will be used to name all resources required. It may only contain letters, hyphens and underscore characters."
+                "description": "The prefix used to name general resources created by this template. Use the corresponding value output from the ARM template part 1."
             }
         },
         "resourceTags": {
             "type": "object",
             "defaultValue": {},
             "metadata": {
-                "description": "Tags added to each resource created."
+                "description": "Additional tags to add to each resource created."
+            }
+        },
+        "storageAccountNamePrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix used to name Storage Account resources created by this template. Use the corresponding value output from the ARM template part 1."
             }
         },
         "virtualNetworkName": {
@@ -100,30 +94,10 @@
             }
         }
     },
-    "functions":[
-        {
-            "namespace": "custom",
-            "members": {
-                "cleanName": {
-                    "parameters": [
-                        {
-                        "name": "dirtyName",
-                        "type": "string"
-                        }
-                    ],
-                    "output": {
-                        "type": "string",
-                        "value": "[replace(replace(replace(parameters('dirtyName'), '-', ''), '_', ''), ' ', '')]"
-                    }
-                }
-            }
-        }
-    ],
     "variables": {
         "diagnosticBlobServicesName": "Default",
-        "diagnosticStorageAccountName": "[tolower(concat(take(custom.cleanName(parameters('projectName')), 13), if(equals(parameters('environmentName'), 'prod'), '', take(parameters('environmentName'), 4)), 'diagsa'))]",
-        "resourceNamePrefix" : "[concat(parameters('projectName'), '-', toupper(parameters('environmentName')))]",
-        "vmssName": "[concat(variables('resourceNamePrefix'), '-VMSS')]",
+        "diagnosticStorageAccountName": "[concat(parameters('storageAccountNamePrefix'), 'diagsa')]",
+        "vmssName": "[concat(parameters('resourceNamePrefix'), '-VMSS')]",
         "vmssVmProfileNetworkInterfaceName": "[concat(variables('vmssName'), '-NIC')]"
     },
     "resources": [
@@ -215,7 +189,7 @@
                 },
                 "virtualMachineProfile": {
                     "osProfile": {
-                        "computerNamePrefix": "[toLower(take(parameters('projectName'),9))]",
+                        "computerNamePrefix": "webserver",
                         "adminUsername": "[parameters('webServerAdminUsername')]",
                         "adminPassword": "[parameters('webServerAdminPassword')]",
                         "linuxConfiguration": {

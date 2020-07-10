@@ -18,7 +18,7 @@
                 "csmParametersFileLink": "",
                 "csmFile": "$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/armTemplates/azuredeploy-part1.json",
                 "csmParametersFile": "",
-                "overrideParameters": "-armTemplateRepoBaseUrl \"$(armTemplateRepoBaseUrl)\" -corporateInternetGatewayIpAddress \"$(corporateInternetGatewayIpAddress)\" -databaseAdminPassword \"$(databaseAdminPassword)\" -databaseAdminUsername \"$(databaseAdminUsername)\" -environmentName \"$(environmentName)\" -gatewaySslCertificateUri \"$(gatewaySslCertificateUri)\" -gatewayUserAssignedIdentity { \"$(gatewayUserAssignedIdentity)\": {} } -location \"$(location)\" -projectName \"$(projectName)\" -resourceTags $(resourceTags) -virtualNetworkAddressBase \"$(virtualNetworkAddressBase)\"",
+                "overrideParameters": "-armTemplateRepoBaseUrl \"$(armTemplateRepoBaseUrl)\" -corporateInternetGatewayIpAddress \"$(corporateInternetGatewayIpAddress)\" -databaseAdminPassword \"$(databaseAdminPassword)\" -databaseAdminUsername \"$(databaseAdminUsername)\" -environmentName \"$(environmentName)\" -gatewaySslCertificateUri \"$(gatewaySslCertificateUri)\" -gatewayUserAssignedIdentity { \"$(gatewayUserAssignedIdentity)\": {} } -location \"$(location)\" -projectShortName \"$(projectShortName)\" -resourceTags $(resourceTags) -virtualNetworkAddressBase \"$(virtualNetworkAddressBase)\"",
                 "deploymentMode": "Incremental",
                 "enableDeploymentPrerequisites": "None",
                 "deploymentGroupEndpoint": "",
@@ -29,7 +29,7 @@
                 "userName": "",
                 "password": "",
                 "outputVariable": "",
-                "deploymentName": "Moodle-Cluster-PipelineDeployment-Part1",
+                "deploymentName": "Moodle-Cluster_Deployment_Part_1",
                 "deploymentOutputs": "ArmOutputs1",
                 "addSpnToEnvironment": "false"
             },
@@ -74,7 +74,7 @@
                 "targetType": "inline",
                 "filePath": "",
                 "arguments": "",
-                "script": "echo 'Computing local variables...'\nVM_NAME=\"${PROJECTNAME}-${ENVIRONMENTNAME}-$(date +'%Y%m%dT%H%M%S%Z')-VM\"\necho \"VM_NAME=$VM_NAME\"\nVM_IMAGE_NAME=\"${VM_NAME}-Image\"\necho \"VM_IMAGE_NAME=$VM_IMAGE_NAME\"\nif [[ -z \"$CUSTOMAPPLICATIONFQDN\" ]]; then\n    APPLICATION_FQDN=\"$ARMOUTPUTS1_GATEWAYPUBLICIPFQDN\"\nelse\n    APPLICATION_FQDN=\"$CUSTOMAPPLICATIONFQDN\"\nfi\necho \"APPLICATION_FQDN=$APPLICATION_FQDN\"\n\necho 'Setting new pipeline variables...'\necho \"##vso[task.setvariable variable=vmName;]$VM_NAME\"\necho \"##vso[task.setvariable variable=vmImageName;]$VM_IMAGE_NAME\"\necho \"##vso[task.setvariable variable=applicationFqdn;]$APPLICATION_FQDN\"\necho 'Done'",
+                "script": "echo 'Computing local variables...'\nVM_NAME=\"${ARMOUTPUTS1_RESOURCENAMEPREFIX}-$(date +'%Y%m%dT%H%M%S%Z')-VM\"\necho \"VM_NAME=$VM_NAME\"\nVM_IMAGE_NAME=\"${VM_NAME}-Image\"\necho \"VM_IMAGE_NAME=$VM_IMAGE_NAME\"\nif [[ -z \"$CUSTOMAPPLICATIONFQDN\" ]]; then\n    APPLICATION_FQDN=\"$ARMOUTPUTS1_GATEWAYPUBLICIPFQDN\"\nelse\n    APPLICATION_FQDN=\"$CUSTOMAPPLICATIONFQDN\"\nfi\necho \"APPLICATION_FQDN=$APPLICATION_FQDN\"\n\necho 'Setting new pipeline variables...'\necho \"##vso[task.setvariable variable=vmName;]$VM_NAME\"\necho \"##vso[task.setvariable variable=vmImageName;]$VM_IMAGE_NAME\"\necho \"##vso[task.setvariable variable=applicationFqdn;]$APPLICATION_FQDN\"\necho 'Done'",
                 "workingDirectory": "",
                 "failOnStderr": "true",
                 "noProfile": "true",
@@ -129,7 +129,7 @@
                 "csmParametersFileLink": "",
                 "csmFile": "$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/armTemplates/azuredeploy-part2.json",
                 "csmParametersFile": "",
-                "overrideParameters": "-applicationNetworkSecurityGroupName \"$(ArmOutputs1.applicationNetworkSecurityGroupName)\" -applicationSubnetName \"$(ArmOutputs1.applicationSubnetName)\" -corporateInternetGatewayIpAddress \"$(corporateInternetGatewayIpAddress)\" -environmentName $(environmentName) -fileRepositoryUri \"$(fileRepositoryUri)\" -gatewayBackendAddressPoolName \"$(ArmOutputs1.gatewayBackendAddressPoolName)\" -gatewayName \"$(ArmOutputs1.gatewayName)\" -location \"$(location)\" -moodleShareName \"$(ArmOutputs1.moodleShareName)\" -projectName \"$(projectName)\" -resourceTags $(resourceTags) -virtualNetworkName \"$(ArmOutputs1.virtualNetworkName)\" -vmssVmProfileImageReferenceName \"$(vmImageName)\" -webServerAdminPassword \"$(webServerAdminPassword)\" -webServerAdminUsername \"$(webServerAdminUsername)\"",
+                "overrideParameters": "-applicationNetworkSecurityGroupName \"$(ArmOutputs1.applicationNetworkSecurityGroupName)\" -applicationSubnetName \"$(ArmOutputs1.applicationSubnetName)\" -corporateInternetGatewayIpAddress \"$(corporateInternetGatewayIpAddress)\" -fileRepositoryUri \"$(fileRepositoryUri)\" -gatewayBackendAddressPoolName \"$(ArmOutputs1.gatewayBackendAddressPoolName)\" -gatewayName \"$(ArmOutputs1.gatewayName)\" -location \"$(location)\" -moodleShareName \"$(ArmOutputs1.moodleShareName)\" -resourceNamePrefix \"$(ArmOutputs1.resourceNamePrefix)\" -resourceTags $(resourceTags) -storageAccountNamePrefix \"$(ArmOutputs1.storageAccountNamePrefix)\" -virtualNetworkName \"$(ArmOutputs1.virtualNetworkName)\" -vmssVmProfileImageReferenceName \"$(vmImageName)\" -webServerAdminPassword \"$(webServerAdminPassword)\" -webServerAdminUsername \"$(webServerAdminUsername)\"",
                 "deploymentMode": "Incremental",
                 "enableDeploymentPrerequisites": "None",
                 "deploymentGroupEndpoint": "",
@@ -140,7 +140,7 @@
                 "userName": "",
                 "password": "",
                 "outputVariable": "",
-                "deploymentName": "Moodle-Cluster-PipelineDeployment-Part2",
+                "deploymentName": "Moodle-Cluster_Deployment_Part_2",
                 "deploymentOutputs": "ArmOutputs2",
                 "addSpnToEnvironment": "false"
             },
@@ -261,7 +261,7 @@
             "defaultValue": "$(armTemplateRepoBaseUrl)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The base URL of the Azure Resource Manager template repository.",
             "groupName": ""
         },
         {
@@ -273,7 +273,7 @@
             "defaultValue": "$(corporateInternetGatewayIpAddress)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The IP Address of the Corporate Internet Gateway.",
             "groupName": ""
         },
         {
@@ -285,7 +285,7 @@
             "defaultValue": "$(customApplicationFqdn)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The custom Fully Qualified Domain Name for the application. Leave empty to use the Application Gateway Public IP FQDN.",
             "groupName": ""
         },
         {
@@ -297,7 +297,7 @@
             "defaultValue": "$(databaseAdminPassword)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The password to use in order to manage the database server.",
             "groupName": ""
         },
         {
@@ -309,7 +309,7 @@
             "defaultValue": "$(databaseAdminUsername)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The username to use in order to manage the database server.",
             "groupName": ""
         },
         {
@@ -321,7 +321,7 @@
             "defaultValue": "$(databaseMoodlePassword)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The password to use in order to use Moodle database.",
             "groupName": ""
         },
         {
@@ -333,7 +333,7 @@
             "defaultValue": "$(databaseMoodleUsername)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The username to use in order to use Moodle database.",
             "groupName": ""
         },
         {
@@ -345,7 +345,7 @@
             "defaultValue": "$(environmentName)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The name of the provisioned environment. Used to build resource names.",
             "groupName": ""
         },
         {
@@ -357,7 +357,7 @@
             "defaultValue": "$(fileRepositoryBaseUri)/$(Build.SourceBranch)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The public URI to raw version of the project repository files.",
             "groupName": ""
         },
         {
@@ -369,7 +369,7 @@
             "defaultValue": "$(gatewaySslCertificateUri)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The URI of the SSL Certificate Secret used by the Application Gateway.",
             "groupName": ""
         },
         {
@@ -381,7 +381,7 @@
             "defaultValue": "$(gatewayUserAssignedIdentity)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The User Identity assigned to the Application Gateway to get the SSL Certificat Secret.",
             "groupName": ""
         },
         {
@@ -393,7 +393,7 @@
             "defaultValue": "$(location)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The name of the Azure Location where resources will be created.",
             "groupName": ""
         },
         {
@@ -405,7 +405,7 @@
             "defaultValue": "$(moodleAdminEmail)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The Moodle Administrator's email.",
             "groupName": ""
         },
         {
@@ -417,7 +417,7 @@
             "defaultValue": "$(moodleAdminPassword)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The Moodle Administrator's password.",
             "groupName": ""
         },
         {
@@ -429,7 +429,7 @@
             "defaultValue": "$(moodleAdminUsername)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The Moodle Administrator's username.",
             "groupName": ""
         },
         {
@@ -441,19 +441,19 @@
             "defaultValue": "$(moodleUpgradeKey)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The Moodle Upgrade Key.",
             "groupName": ""
         },
         {
             "aliases": [],
             "options": {},
             "properties": {},
-            "name": "projectName",
-            "label": "projectName",
-            "defaultValue": "$(projectName)",
+            "name": "projectShortName",
+            "label": "projectShortName",
+            "defaultValue": "$(projectShortName)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The short name of the project. This string will be used to name all resources required. It must only contain letters (a-z,A-Z), hyphens (-) and underscore (_) characters, and must not exceed 13 characters in lenght.",
             "groupName": ""
         },
         {
@@ -465,7 +465,7 @@
             "defaultValue": "$(resourceGroupName)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The name of the Resource Group in which resources are created.",
             "groupName": ""
         },
         {
@@ -477,7 +477,7 @@
             "defaultValue": "$(resourceTags)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "Additional tags to add to each resource created.",
             "groupName": ""
         },
         {
@@ -501,31 +501,7 @@
             "defaultValue": "$(virtualNetworkAddressBase)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
-            "groupName": ""
-        },
-        {
-            "aliases": [],
-            "options": {},
-            "properties": {},
-            "name": "vmImageName",
-            "label": "vmImageName",
-            "defaultValue": "$(vmImageName)",
-            "required": true,
-            "type": "string",
-            "helpMarkDown": "",
-            "groupName": ""
-        },
-        {
-            "aliases": [],
-            "options": {},
-            "properties": {},
-            "name": "vmName",
-            "label": "vmName",
-            "defaultValue": "$(vmName)",
-            "required": true,
-            "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The virtual network IP address prefix. Format is '255.255.255'.",
             "groupName": ""
         },
         {
@@ -537,7 +513,7 @@
             "defaultValue": "$(webServerAdminPassword)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The password to use to connect to the VMSS instances.",
             "groupName": ""
         },
         {
@@ -549,7 +525,7 @@
             "defaultValue": "$(webServerAdminUsername)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "",
+            "helpMarkDown": "The username to use to connect to the VMSS instances.",
             "groupName": ""
         }
     ],

@@ -41,7 +41,7 @@
         "location": {
             "type": "string",
             "metadata": {
-                "description": "The name of the location new resources will be created in."
+                "description": "The name of the Azure Location where resources will be created."
             }
         },
         "moodleShareName": {
@@ -66,7 +66,7 @@
         "storageAccountNamePrefix": {
             "type": "string",
             "metadata": {
-                "description": "The prefix used to name Storage Account resource created by this template. Use the corresponding value output from the ARM template part 1."
+                "description": "The prefix used to name Storage Account resources created by this template. Use the corresponding value output from the ARM template part 1."
             }
         },
         "virtualNetworkName": {

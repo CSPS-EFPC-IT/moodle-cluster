@@ -35,7 +35,7 @@
                 "prod"
             ],
             "metadata": {
-                "description": "The name of the provisioned environment. Used to build the service DNS name."
+                "description": "The name of the provisioned environment. Used to build resource names."
             }
         },
         "gatewaySslCertificateUri": {
@@ -47,14 +47,14 @@
         "gatewayUserAssignedIdentity": {
             "type": "object",
             "metadata": {
-                "description": "The User Identity assigned to the Application Gateway to get the SSL Certificat secret."
+                "description": "The User Identity assigned to the Application Gateway to get the SSL Certificat Secret."
             }
         },
         "location": {
             "type": "string",
             "defaultValue": "[resourceGroup().location]",
             "metadata": {
-                "description": "The name of the location new resources will be created in."
+                "description": "The name of the Azure Location where resources will be created."
             }
         },
         "projectShortName": {

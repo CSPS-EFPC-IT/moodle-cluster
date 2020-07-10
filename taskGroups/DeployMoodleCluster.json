@@ -29,7 +29,7 @@
                 "userName": "",
                 "password": "",
                 "outputVariable": "",
-                "deploymentName": "Moodle-Cluster-PipelineDeployment-Part1",
+                "deploymentName": "Moodle-Cluster_Deployment_Part_1",
                 "deploymentOutputs": "ArmOutputs1",
                 "addSpnToEnvironment": "false"
             },
@@ -140,7 +140,7 @@
                 "userName": "",
                 "password": "",
                 "outputVariable": "",
-                "deploymentName": "Moodle-Cluster-PipelineDeployment-Part2",
+                "deploymentName": "Moodle-Cluster_Deployment_Part_2",
                 "deploymentOutputs": "ArmOutputs2",
                 "addSpnToEnvironment": "false"
             },
@@ -345,7 +345,7 @@
             "defaultValue": "$(environmentName)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "The name of the provisioned environment. Used to build the service DNS name.",
+            "helpMarkDown": "The name of the provisioned environment. Used to build resource names.",
             "groupName": ""
         },
         {
@@ -381,7 +381,7 @@
             "defaultValue": "$(gatewayUserAssignedIdentity)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "The User Identity assigned to the Application Gateway to get the SSL Certificat secret.",
+            "helpMarkDown": "The User Identity assigned to the Application Gateway to get the SSL Certificat Secret.",
             "groupName": ""
         },
         {
@@ -393,7 +393,7 @@
             "defaultValue": "$(location)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "The name of the location new resources will be created in.",
+            "helpMarkDown": "The name of the Azure Location where resources will be created.",
             "groupName": ""
         },
         {
@@ -465,7 +465,7 @@
             "defaultValue": "$(resourceGroupName)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "The name of the Resource Group in which the resource are created.",
+            "helpMarkDown": "The name of the Resource Group in which resources are created.",
             "groupName": ""
         },
         {

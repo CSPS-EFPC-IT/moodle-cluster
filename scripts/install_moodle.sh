@@ -251,9 +251,9 @@ echo "Extracting Facetoface plugin..."
 unzip mod_facetoface_moodle35_2018110900.zip -d ${moodleDocumentRoot}/mod
 
 echo "Downloading Activities: Questionnaire plugin zip file..."
-wget https://moodle.org/plugins/download.php/20891/mod_questionnaire_moodle38_2019101705.zip
+wget https://moodle.org/plugins/download.php/21849/mod_questionnaire_moodle39_2020011508.zip
 echo "Extracting Activities: Questionnaire plugin..."
-unzip mod_questionnaire_moodle38_2019101705.zip -d ${moodleDocumentRoot}/mod
+unzip mod_questionnaire_moodle39_2020011508.zip -d ${moodleDocumentRoot}/mod
 
 echo "Downloading Themes: Boost Campus zip file..."
 wget https://moodle.org/plugins/download.php/21242/theme_boost_campus_moodle38_2020032400.zip
@@ -264,6 +264,11 @@ echo "Downloading Local Static Pages plugin zip file..."
 wget https://moodle.org/plugins/download.php/21045/local_staticpage_moodle38_2020021400.zip
 echo "Extracting Local Static Pages plugin..."
 unzip local_staticpage_moodle38_2020021400.zip -d ${moodleDocumentRoot}/local
+
+echo "Downloading CustomCert plugin zip file..."
+wget https://moodle.org/plugins/download.php/21208/mod_customcert_moodle38_2019111804.zip
+echo "Extracting CustomCert plugin..."
+unzip mod_customcert_moodle38_2019111804.zip -d ${moodleDocumentRoot}/mod
 
 echo "Updating file ownership on ${moodleDocumentRoot}..."
 chown -R ${apache2User} ${moodleDocumentRoot}

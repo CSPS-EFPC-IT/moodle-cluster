@@ -216,59 +216,85 @@ echo "Done."
 ###############################################################################
 echo_title "Download and extract Moodle files and plugins."
 ###############################################################################
-echo "Downloading Moodle 3.8.3+ tar file..."
-wget https://download.moodle.org/download.php/direct/stable38/moodle-latest-38.tgz
+# Ref.: https://download.moodle.org/releases/supported/
+echo "Downloading Moodle 3.8.4 tar file..."
+wget https://download.moodle.org/download.php/direct/stable38/moodle-3.8.4.tgz
 echo "Extracting moodle tar file..."
 if [ -d ${moodleDocumentRoot} ]; then
     echo "Deleting old ${moodleDocumentRoot} folder..."
     rm -rf ${moodleDocumentRoot}
 fi
-tar zxfv moodle-latest-38.tgz -C ${defaultDocumentRoot}
+tar zxfv moodle-3.8.4.tgz -C ${defaultDocumentRoot}
 
-echo "Downloading Multi-Language Content (v2) plugin zip file..."
+# Ref.: https://moodle.org/plugins/filter_multilang2
+currentPluginName="Filters: Multi-Language Content (v2)"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/20674/filter_multilang2_moodle38_2019111900.zip
-echo "Extracting Multi-Language Content (v2) plugin..."
+echo "Extracting \"${currentPluginName}\" plugin files..."
 unzip filter_multilang2_moodle38_2019111900.zip -d ${moodleDocumentRoot}/filter
 
-echo "Downloading BigBlueButtonBN plugin zip file..."
+# Ref.: https://moodle.org/plugins/mod_bigbluebuttonbn
+currentPluginName="Activities: BigBlueButtonBN"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21195/mod_bigbluebuttonbn_moodle38_2019042008.zip
-echo "Extracting BigBlueButtonBN plugin..."
+echo "Extracting \"${currentPluginName}\" plugin files..."
 unzip mod_bigbluebuttonbn_moodle38_2019042008.zip -d ${moodleDocumentRoot}/mod
 
-echo "Downloading Navbar Plus plugin zip file..."
+# Ref.: https://moodle.org/plugins/local_navbarplus
+currentPluginName="General plugins (Local): Navbar Plus"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21066/local_navbarplus_moodle38_2020021800.zip
-echo "Extracting Navbar Plus Package plugin..."
+echo "Extracting \"${currentPluginName}\" plugin files..."
 unzip local_navbarplus_moodle38_2020021800.zip -d ${moodleDocumentRoot}/local
 
-echo "Downloading QR code plugin zip file..."
+# Ref.: https://moodle.org/plugins/block_qrcode
+currentPluginName="Blocks: QR code"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/20732/block_qrcode_moodle38_2019112100.zip
-echo "Extracting QR code plugin..."
+echo "Extracting \"${currentPluginName}\" plugin files..."
 unzip block_qrcode_moodle38_2019112100.zip -d ${moodleDocumentRoot}/blocks
 
-echo "Downloading Facetoface plugin zip file..."
+# Ref.: https://moodle.org/plugins/mod_facetoface
+currentPluginName="Activities: Facetoface"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/18183/mod_facetoface_moodle35_2018110900.zip
-echo "Extracting Facetoface plugin..."
+echo "Extracting \"${currentPluginName}\" plugin files..."
 unzip mod_facetoface_moodle35_2018110900.zip -d ${moodleDocumentRoot}/mod
 
-echo "Downloading Activities: Questionnaire plugin zip file..."
+# Ref.: https://moodle.org/plugins/mod_questionnaire
+currentPluginName="Activities: Questionnaire"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21849/mod_questionnaire_moodle39_2020011508.zip
-echo "Extracting Activities: Questionnaire plugin..."
+echo "Extracting \"${currentPluginName}\" plugin files..."
 unzip mod_questionnaire_moodle39_2020011508.zip -d ${moodleDocumentRoot}/mod
 
-echo "Downloading Themes: Boost Campus zip file..."
-wget https://moodle.org/plugins/download.php/21242/theme_boost_campus_moodle38_2020032400.zip
-echo "Extracting Themes: Boost Campus plugin..."
-unzip theme_boost_campus_moodle38_2020032400.zip -d ${moodleDocumentRoot}/theme
+# Ref.: https://moodle.org/plugins/theme_boost_campus
+currentPluginName="Themes: Boost Campus"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
+wget https://moodle.org/plugins/download.php/21973/theme_boost_campus_moodle38_2020071400.zip
+echo "Extracting \"${currentPluginName}\" plugin files..."
+unzip theme_boost_campus_moodle38_2020071400.zip -d ${moodleDocumentRoot}/theme
 
-echo "Downloading Local Static Pages plugin zip file..."
+# Ref.: https://moodle.org/plugins/local_staticpage
+currentPluginName="General plugins (Local): Static Pages"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21045/local_staticpage_moodle38_2020021400.zip
-echo "Extracting Local Static Pages plugin..."
+echo "Extracting \"${currentPluginName}\" plugin files..."
 unzip local_staticpage_moodle38_2020021400.zip -d ${moodleDocumentRoot}/local
 
-echo "Downloading CustomCert plugin zip file..."
+# Ref.: https://moodle.org/plugins/mod_customcert
+currentPluginName="Activities: Custom certificate"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21208/mod_customcert_moodle38_2019111804.zip
-echo "Extracting CustomCert plugin..."
+echo "Extracting \"${currentPluginName}\" plugin files..."
 unzip mod_customcert_moodle38_2019111804.zip -d ${moodleDocumentRoot}/mod
+
+# Ref.: https://moodle.org/plugins/mod_hvp
+currentPluginName="Activities: Interactive Content – H5P"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
+wget https://moodle.org/plugins/download.php/21001/mod_hvp_moodle39_2020020500.zip
+echo "Extracting \"${currentPluginName}\" plugin files..."
+unzip mod_hvp_moodle39_2020020500.zip -d ${moodleDocumentRoot}/mod
 
 echo "Updating file ownership on ${moodleDocumentRoot}..."
 chown -R ${apache2User} ${moodleDocumentRoot}

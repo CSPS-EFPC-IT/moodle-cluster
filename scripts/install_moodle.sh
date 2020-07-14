@@ -271,9 +271,9 @@ unzip mod_questionnaire_moodle39_2020011508.zip -d ${moodleDocumentRoot}/mod
 # Ref.: https://moodle.org/plugins/theme_boost_campus
 currentPluginName="Themes: Boost Campus"
 echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/21242/theme_boost_campus_moodle38_2020032400.zip
+wget https://moodle.org/plugins/download.php/21973/theme_boost_campus_moodle38_2020071400.zip
 echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip theme_boost_campus_moodle38_2020032400.zip -d ${moodleDocumentRoot}/theme
+unzip theme_boost_campus_moodle38_2020071400.zip -d ${moodleDocumentRoot}/theme
 
 # Ref.: https://moodle.org/plugins/local_staticpage
 currentPluginName="General plugins (Local): Static Pages"

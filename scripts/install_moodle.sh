@@ -39,6 +39,8 @@ declare -A parameters=( [dbServerAdminPassword]= \
                         [redisHostName]= \
                         [redisName]= \
                         [redisPrimaryKey]= \
+                        [smtpRelayFqdn]= \
+                        [smtpRelayPrivateIp]= \
                         [storageAccountEndPoint]= \
                         [storageAccountKey]= \
                         [storageAccountName]= )
@@ -118,8 +120,14 @@ echo "Done."
 ###############################################################################
 echo_title "Install Moodle dependencies."
 ###############################################################################
-apt-get install apache2 postgresql-client-10 libapache2-mod-php -y
+apt-get install apache2 libapache2-mod-php -y
 apt-get install graphviz aspell ghostscript clamav php7.2-pspell php7.2-curl php7.2-gd php7.2-intl php7.2-pgsql php7.2-xml php7.2-xmlrpc php7.2-ldap php7.2-zip php7.2-soap php7.2-mbstring php7.2-redis -y
+echo "Done."
+
+###############################################################################
+echo_title "Setup SMTP Relay."
+###############################################################################
+echo -e "\n# Redirect SMTP Relay FQDN to Private IP Address.\n${parameters[smtpRelayPrivateIp]}\t${parameters[smtpRelayFqdn]}" >> /etc/hosts
 echo "Done."
 
 ###############################################################################

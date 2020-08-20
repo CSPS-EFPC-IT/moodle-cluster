@@ -32,6 +32,8 @@ declare -A parameters=( [applicationFqdn]= \
                         [redisName]= \
                         [redisPrimaryKey]= \
                         [resourceGroupName]= \
+                        [smtpRelayFqdn]= \
+                        [smtpRelayPrivateIp]= \
                         [virtualNetworkName]= \
                         [vmImageName]= \
                         [vmName]= \
@@ -133,6 +135,8 @@ az vm extension set \
                 -redisHostName ${parameters[redisHostName]} \
                 -redisName ${parameters[redisName]} \
                 -redisPrimaryKey ${parameters[redisPrimaryKey]} \
+                -smtpRelayFqdn ${parameters[smtpRelayFqdn]} \
+                -smtpRelayPrivateIp ${parameters[smtpRelayPrivateIp]} \
                 -storageAccountEndPoint ${parameters[moodleStorageAccountFilePrimaryEndPoint]} \
                 -storageAccountKey ${parameters[moodleStorageAccountKey]} \
                 -storageAccountName ${parameters[moodleStorageAccountName]} > /var/log/install_moodle.log 2>&1\" \

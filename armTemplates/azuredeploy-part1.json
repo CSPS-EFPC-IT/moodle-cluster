@@ -125,6 +125,7 @@
         "gatewayRedirectConfigurationsName": "HTTP-Redirect",
         "gatewayRequestRoutingRuleHttpName": "HTTP-Rule",
         "gatewayRequestRoutingRuleHttpsName": "HTTPS-Rule",
+        "gatewayRewriteRuleSetsName": "Custom-Rewrite-Rules",
         "gatewaySslCertificateHttpsName": "HTTPS-Certificate",
         "gatewaySubnetAddressPrefix": "[concat(parameters('virtualNetworkAddressBase'), '.0/27')]",
         "gatewaySubnetName": "[concat(variables('resourceNamePrefix'), '-PAZ-AG-SN')]",
@@ -521,7 +522,29 @@
                     }
                 ],
                 "probes": [],
-                "rewriteRuleSets": [],
+                "rewriteRuleSets": [
+                    {
+                        "name": "[variables('gatewayRewriteRuleSetsName')]",
+                        "properties": {
+                            "rewriteRules": [
+                                {
+                                    "ruleSequence": 100,
+                                    "conditions": [],
+                                    "name": "StrictTransportSecurity",
+                                    "actionSet": {
+                                        "requestHeaderConfigurations": [],
+                                        "responseHeaderConfigurations": [
+                                            {
+                                                "headerName": "Strict-Transport-Security",
+                                                "headerValue": "max-age=63072000"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
                 "redirectConfigurations": [
                     {
                         "name": "[variables('gatewayRedirectConfigurationsName')]",

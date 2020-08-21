@@ -95,14 +95,15 @@ echo "Done."
 ###############################################################################
 echo_title "Set useful variables."
 ###############################################################################
-phpIniPath="/etc/php/7.2/apache2/php.ini"
-defaultDocumentRoot="/var/www/html"
+apache2DefaultDocumentRootDirPath="/var/www/html"
+apache2ConfEnabledSecurityFilePath="/etc/apache2/conf-enabled/security.conf"
+apache2SitesEnabledDefaultFilePath="/etc/apache2/sites-enabled/000-default.conf"
 apache2User="www-data"
-apache2SecurityConfPath="/etc/apache2/conf-enabled/security.conf"
-apache2SitesEnabledDefault="/etc/apache2/sites-enabled/000-default.conf"
-moodleDocumentRoot="${defaultDocumentRoot}/moodle"
-moodleLocalCacheRoot="${defaultDocumentRoot}/moodlelocalcache"
+hostsFilePath="/etc/hosts"
 installDir="$(pwd)"
+moodleDocumentRootDirPath="${apache2DefaultDocumentRootDirPath}/moodle"
+moodleLocalCacheRootDirPath="${apache2DefaultDocumentRootDirPath}/moodlelocalcache"
+phpIniFilePath="/etc/php/7.2/apache2/php.ini"
 echo "Done."
 
 ###############################################################################
@@ -110,7 +111,6 @@ echo_title "Update and upgrade the server."
 ###############################################################################
 apt-get update
 apt-get upgrade -y
-apt-get autoremove -y
 echo "Done."
 
 ###############################################################################
@@ -127,36 +127,42 @@ apt-get install graphviz aspell ghostscript clamav php7.2-pspell php7.2-curl php
 echo "Done."
 
 ###############################################################################
+echo_title "Remove server packages that are no longer needed."
+###############################################################################
+apt-get autoremove -y
+echo "Done."
+
+
+###############################################################################
 echo_title "Setup SMTP Relay."
 ###############################################################################
-echo -e "\n# Redirect SMTP Relay FQDN to Private IP Address.\n${parameters[smtpRelayPrivateIp]}\t${parameters[smtpRelayFqdn]}" >> /etc/hosts
+echo "Adding SMTP Relay Private IP address in ${hostsFilePath}..."
+echo -e "\n# Redirect SMTP Relay FQDN to Private IP Address.\n${parameters[smtpRelayPrivateIp]}\t${parameters[smtpRelayFqdn]}" >> $hostsFilePath
 echo "Done."
 
 ###############################################################################
 echo_title "Update PHP config."
 ###############################################################################
-echo "Update upload_max_filesize setting."
-sed -i "s/upload_max_filesize.*/upload_max_filesize = 2048M/" $phpIniPath
-echo "Update post_max_size setting."
-sed -i "s/post_max_size.*/post_max_size = 2048M/" $phpIniPath
+echo "Updating upload_max_filesize and post_max_size settings in ${phpIniFilePath}..."
+sed -i "s/upload_max_filesize.*/upload_max_filesize = 2048M/" $phpIniFilePath
+sed -i "s/post_max_size.*/post_max_size = 2048M/" $phpIniFilePath
 echo "Done."
 
 ###############################################################################
 echo_title "Update Apache config."
 ###############################################################################
-echo "Update Apache default site DocumentRoot property."
-if ! grep -q "${moodleDocumentRoot}" $apache2SitesEnabledDefault; then
-    echo "Updating $apache2SitesEnabledDefault..."
-    escapedDefaultDocumentRoot=$(sed -E 's/(\/)/\\\1/g' <<< ${defaultDocumentRoot})
-    escapedMoodleDocumentRoot=$(sed -E 's/(\/)/\\\1/g' <<< ${moodleDocumentRoot})
-    sed -i -E "s/DocumentRoot[[:space:]]*${escapedDefaultDocumentRoot}/DocumentRoot ${escapedMoodleDocumentRoot}/g" $apache2SitesEnabledDefault
+if ! grep -q "${moodleDocumentRootDirPath}" $apache2SitesEnabledDefaultFilePath; then
+    echo "Updating Apache default site DocumentRoot property in ${apache2SitesEnabledDefaultFilePath}..."
+    escapedApache2DefaultDocumentRootDirPath=$(sed -E 's/(\/)/\\\1/g' <<< ${apache2DefaultDocumentRootDirPath})
+    escapedMoodleDocumentRootDirPath=$(sed -E 's/(\/)/\\\1/g' <<< ${moodleDocumentRootDirPath})
+    sed -i -E "s/DocumentRoot[[:space:]]*${escapedApache2DefaultDocumentRootDirPath}/DocumentRoot ${escapedMoodleDocumentRootDirPath}/g" $apache2SitesEnabledDefaultFilePath
 else
-    echo "Skipping /etc/apache2/sites-available/000-default.conf file update."
+    echo "Skipping $apache2SitesEnabledDefaultFilePath file update: DocumentRoot already properly set."
 fi
 
-echo "Update Apache ServerSignature and ServerToken directives."
-sed -i "s/^ServerTokens[[:space:]]*\(Full\|OS\|Minimal\|Minor\|Major\|Prod\)$/ServerTokens Prod/" $apache2SecurityConfPath
-sed -i "s/^ServerSignature[[:space:]]*\(On\|Off\|EMail\)$/ServerSignature Off/" $apache2SecurityConfPath
+echo "Updating Apache ServerSignature and ServerToken directives in ${apache2ConfEnabledSecurityFilePath}..."
+sed -i "s/^ServerTokens[[:space:]]*\(Full\|OS\|Minimal\|Minor\|Major\|Prod\)$/ServerTokens Prod/" $apache2ConfEnabledSecurityFilePath
+sed -i "s/^ServerSignature[[:space:]]*\(On\|Off\|EMail\)$/ServerSignature Off/" $apache2ConfEnabledSecurityFilePath
 
 echo "Restarting Apache2..."
 service apache2 restart
@@ -220,14 +226,14 @@ echo "Done."
 ###############################################################################
 echo_title "Create Moodle Local Cache directory."
 ###############################################################################
-if [ -d ${moodleLocalCacheRoot} ]; then
-    echo "Deleting old ${moodleLocalCacheRoot} folder..."
-    rm -rf ${moodleLocalCacheRoot}
+if [ -d ${moodleLocalCacheRootDirPath} ]; then
+    echo "Deleting old ${moodleLocalCacheRootDirPath} folder..."
+    rm -rf ${moodleLocalCacheRootDirPath}
 fi
-echo "Creating new ${moodleLocalCacheRoot} folder..."
-mkdir ${moodleLocalCacheRoot}
-echo "Updating file permission on ${moodleLocalCacheRoot}..."
-chown -R ${apache2User} ${moodleLocalCacheRoot}
+echo "Creating new ${moodleLocalCacheRootDirPath} folder..."
+mkdir ${moodleLocalCacheRootDirPath}
+echo "Updating file permission on ${moodleLocalCacheRootDirPath}..."
+chown -R ${apache2User} ${moodleLocalCacheRootDirPath}
 echo "Done."
 
 ###############################################################################
@@ -237,85 +243,85 @@ echo_title "Download and extract Moodle files and plugins."
 echo "Downloading Moodle 3.8.4 tar file..."
 wget https://download.moodle.org/download.php/direct/stable38/moodle-3.8.4.tgz
 echo "Extracting moodle tar file..."
-if [ -d ${moodleDocumentRoot} ]; then
-    echo "Deleting old ${moodleDocumentRoot} folder..."
-    rm -rf ${moodleDocumentRoot}
+if [ -d ${moodleDocumentRootDirPath} ]; then
+    echo "Deleting old ${moodleDocumentRootDirPath} folder..."
+    rm -rf ${moodleDocumentRootDirPath}
 fi
-tar zxfv moodle-3.8.4.tgz -C ${defaultDocumentRoot}
+tar zxfv moodle-3.8.4.tgz -C ${apache2DefaultDocumentRootDirPath}
 
 # Ref.: https://moodle.org/plugins/filter_multilang2
 currentPluginName="Filters: Multi-Language Content (v2)"
 echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/20674/filter_multilang2_moodle38_2019111900.zip
 echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip filter_multilang2_moodle38_2019111900.zip -d ${moodleDocumentRoot}/filter
+unzip filter_multilang2_moodle38_2019111900.zip -d ${moodleDocumentRootDirPath}/filter
 
 # Ref.: https://moodle.org/plugins/mod_bigbluebuttonbn
 currentPluginName="Activities: BigBlueButtonBN"
 echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21195/mod_bigbluebuttonbn_moodle38_2019042008.zip
 echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip mod_bigbluebuttonbn_moodle38_2019042008.zip -d ${moodleDocumentRoot}/mod
+unzip mod_bigbluebuttonbn_moodle38_2019042008.zip -d ${moodleDocumentRootDirPath}/mod
 
 # Ref.: https://moodle.org/plugins/local_navbarplus
 currentPluginName="General plugins (Local): Navbar Plus"
 echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21066/local_navbarplus_moodle38_2020021800.zip
 echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip local_navbarplus_moodle38_2020021800.zip -d ${moodleDocumentRoot}/local
+unzip local_navbarplus_moodle38_2020021800.zip -d ${moodleDocumentRootDirPath}/local
 
 # Ref.: https://moodle.org/plugins/block_qrcode
 currentPluginName="Blocks: QR code"
 echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/20732/block_qrcode_moodle38_2019112100.zip
 echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip block_qrcode_moodle38_2019112100.zip -d ${moodleDocumentRoot}/blocks
+unzip block_qrcode_moodle38_2019112100.zip -d ${moodleDocumentRootDirPath}/blocks
 
 # Ref.: https://moodle.org/plugins/mod_facetoface
 currentPluginName="Activities: Facetoface"
 echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/18183/mod_facetoface_moodle35_2018110900.zip
 echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip mod_facetoface_moodle35_2018110900.zip -d ${moodleDocumentRoot}/mod
+unzip mod_facetoface_moodle35_2018110900.zip -d ${moodleDocumentRootDirPath}/mod
 
 # Ref.: https://moodle.org/plugins/mod_questionnaire
 currentPluginName="Activities: Questionnaire"
 echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21849/mod_questionnaire_moodle39_2020011508.zip
 echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip mod_questionnaire_moodle39_2020011508.zip -d ${moodleDocumentRoot}/mod
+unzip mod_questionnaire_moodle39_2020011508.zip -d ${moodleDocumentRootDirPath}/mod
 
 # Ref.: https://moodle.org/plugins/theme_boost_campus
 currentPluginName="Themes: Boost Campus"
 echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21973/theme_boost_campus_moodle38_2020071400.zip
 echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip theme_boost_campus_moodle38_2020071400.zip -d ${moodleDocumentRoot}/theme
+unzip theme_boost_campus_moodle38_2020071400.zip -d ${moodleDocumentRootDirPath}/theme
 
 # Ref.: https://moodle.org/plugins/local_staticpage
 currentPluginName="General plugins (Local): Static Pages"
 echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21045/local_staticpage_moodle38_2020021400.zip
 echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip local_staticpage_moodle38_2020021400.zip -d ${moodleDocumentRoot}/local
+unzip local_staticpage_moodle38_2020021400.zip -d ${moodleDocumentRootDirPath}/local
 
 # Ref.: https://moodle.org/plugins/mod_customcert
 currentPluginName="Activities: Custom certificate"
 echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21208/mod_customcert_moodle38_2019111804.zip
 echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip mod_customcert_moodle38_2019111804.zip -d ${moodleDocumentRoot}/mod
+unzip mod_customcert_moodle38_2019111804.zip -d ${moodleDocumentRootDirPath}/mod
 
 # Ref.: https://moodle.org/plugins/mod_hvp
 currentPluginName="Activities: Interactive Content – H5P"
 echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21001/mod_hvp_moodle39_2020020500.zip
 echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip mod_hvp_moodle39_2020020500.zip -d ${moodleDocumentRoot}/mod
+unzip mod_hvp_moodle39_2020020500.zip -d ${moodleDocumentRootDirPath}/mod
 
-echo "Updating file ownership on ${moodleDocumentRoot}..."
-chown -R ${apache2User} ${moodleDocumentRoot}
-chgrp -R root ${moodleDocumentRoot}
+echo "Updating file ownership on ${moodleDocumentRootDirPath}..."
+chown -R ${apache2User} ${moodleDocumentRootDirPath}
+chgrp -R root ${moodleDocumentRootDirPath}
 
 echo "Done."
 
@@ -335,7 +341,7 @@ else
     skipDatabaseOption='--skip-database'
 fi
 
-sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRoot}/admin/cli/install.php \
+sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRootDirPath}/admin/cli/install.php \
 --non-interactive \
 --lang=en \
 --chmod=2777 \
@@ -362,14 +368,14 @@ ${skipDatabaseOption} \
 echo_title "Update Moodle config for SSL Proxy and Local Cache directory."
 ###############################################################################
 # No need to test for existing values since the file is always new.
-echo "Adding SSL Proxy setting to ${moodleDocumentRoot}/config.php file..."
-sed -i '/^\$CFG->wwwroot.*/a \$CFG->sslproxy\t= true;' ${moodleDocumentRoot}/config.php
+echo "Adding SSL Proxy setting to ${moodleDocumentRootDirPath}/config.php file..."
+sed -i '/^\$CFG->wwwroot.*/a \$CFG->sslproxy\t= true;' ${moodleDocumentRootDirPath}/config.php
 
-echo "Adding Local Cache Directory setting to ${moodleDocumentRoot}/config.php file..."
-sed -i "/^\$CFG->dataroot.*/a \$CFG->localcachedir\t= '${moodleLocalCacheRoot}';" ${moodleDocumentRoot}/config.php
+echo "Adding Local Cache Directory setting to ${moodleDocumentRootDirPath}/config.php file..."
+sed -i "/^\$CFG->dataroot.*/a \$CFG->localcachedir\t= '${moodleLocalCacheRootDirPath}';" ${moodleDocumentRootDirPath}/config.php
 
-echo "Adding default timezone setting to ${moodleDocumentRoot}/config.php file..."
-sed -i "/^\$CFG->upgradekey.*/a date_default_timezone_set('America/Toronto');" ${moodleDocumentRoot}/config.php
+echo "Adding default timezone setting to ${moodleDocumentRootDirPath}/config.php file..."
+sed -i "/^\$CFG->upgradekey.*/a date_default_timezone_set('America/Toronto');" ${moodleDocumentRootDirPath}/config.php
 
 echo "Done"
 
@@ -379,7 +385,7 @@ echo_title "Update Moodle Universal Cache (MUC) config for Redis."
 mucConfigFile="/mnt/${parameters[fileShareName]}/muc/config.php"
 if ! grep -q ${parameters[redisName]} ${mucConfigFile}; then
     echo "Updating ${mucConfigFile} file..."
-    php ${installDir}/update_muc.php ${parameters[redisHostName]} ${parameters[redisName]} ${parameters[redisPrimaryKey]} ${mucConfigFile}
+    php ${installDirPath}/update_muc.php ${parameters[redisHostName]} ${parameters[redisName]} ${parameters[redisPrimaryKey]} ${mucConfigFile}
 else
     echo "Skipping ${mucConfigFile} file update."
 fi
@@ -388,25 +394,25 @@ echo "Done"
 ###############################################################################
 echo_title "Install plugins that have been recently added on the file system."
 ###############################################################################
-sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRoot}/admin/cli/upgrade.php --non-interactive
+sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRootDirPath}/admin/cli/upgrade.php --non-interactive
 echo "Done."
 
 ###############################################################################
 echo_title "Uninstall plugings that have been recently removed from the file system."
 ###############################################################################
-sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRoot}/admin/cli/uninstall_plugins.php --purge-missing --run
+sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRootDirPath}/admin/cli/uninstall_plugins.php --purge-missing --run
 echo "Done."
 
 ###############################################################################
 echo_title "Purge all Moodle Caches."
 ###############################################################################
-sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRoot}/admin/cli/purge_caches.php
+sudo -u ${apache2User} /usr/bin/php ${moodleDocumentRootDirPath}/admin/cli/purge_caches.php
 echo "Done"
 
 ###############################################################################
 echo_title "Set Moodle Crontab."
 ###############################################################################
-crontab -l | { cat; echo "* * * * * sudo -u www-data php ${moodleDocumentRoot}/admin/cli/cron.php > /dev/null"; } | crontab -
+crontab -l | { cat; echo "* * * * * sudo -u www-data php ${moodleDocumentRootDirPath}/admin/cli/cron.php > /dev/null"; } | crontab -
 echo "Done"
 
 ###############################################################################

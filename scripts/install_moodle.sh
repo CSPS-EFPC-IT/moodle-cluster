@@ -96,11 +96,13 @@ echo "Done."
 echo_title "Set useful variables."
 ###############################################################################
 phpIniPath="/etc/php/7.2/apache2/php.ini"
-defaultDocumentRoot=/var/www/html
+defaultDocumentRoot="/var/www/html"
 apache2User="www-data"
-moodleDocumentRoot=${defaultDocumentRoot}/moodle
-moodleLocalCacheRoot=${defaultDocumentRoot}/moodlelocalcache
-installDir=$(pwd)
+apache2SecurityConfPath="/etc/apache2/conf-enabled/security.conf"
+apache2SitesEnabledDefault="/etc/apache2/sites-enabled/000-default.conf"
+moodleDocumentRoot="${defaultDocumentRoot}/moodle"
+moodleLocalCacheRoot="${defaultDocumentRoot}/moodlelocalcache"
+installDir="$(pwd)"
 echo "Done."
 
 ###############################################################################
@@ -140,18 +142,25 @@ sed -i "s/post_max_size.*/post_max_size = 2048M/" $phpIniPath
 echo "Done."
 
 ###############################################################################
-echo_title "Update Apache default site DocumentRoot property."
+echo_title "Update Apache config."
 ###############################################################################
-if ! grep -q "${moodleDocumentRoot}" /etc/apache2/sites-available/000-default.conf; then
-    echo "Updating /etc/apache2/sites-available/000-default.conf..."
+echo "Update Apache default site DocumentRoot property."
+if ! grep -q "${moodleDocumentRoot}" $apache2SitesEnabledDefault; then
+    echo "Updating $apache2SitesEnabledDefault..."
     escapedDefaultDocumentRoot=$(sed -E 's/(\/)/\\\1/g' <<< ${defaultDocumentRoot})
     escapedMoodleDocumentRoot=$(sed -E 's/(\/)/\\\1/g' <<< ${moodleDocumentRoot})
-    sed -i -E "s/DocumentRoot[[:space:]]*${escapedDefaultDocumentRoot}/DocumentRoot ${escapedMoodleDocumentRoot}/g" /etc/apache2/sites-available/000-default.conf
-    echo "Restarting Apache2..."
-    service apache2 restart
+    sed -i -E "s/DocumentRoot[[:space:]]*${escapedDefaultDocumentRoot}/DocumentRoot ${escapedMoodleDocumentRoot}/g" $apache2SitesEnabledDefault
 else
     echo "Skipping /etc/apache2/sites-available/000-default.conf file update."
 fi
+
+echo "Update Apache ServerSignature and ServerToken directives."
+sed -i "s/^ServerTokens[[:space:]]*\(Full\|OS\|Minimal\|Minor\|Major\|Prod\)$/ServerTokens Prod/" $apache2SecurityConfPath
+sed -i "s/^ServerSignature[[:space:]]*\(On\|Off\|EMail\)$/ServerSignature Off/" $apache2SecurityConfPath
+
+echo "Restarting Apache2..."
+service apache2 restart
+
 echo "Done."
 
 ###############################################################################

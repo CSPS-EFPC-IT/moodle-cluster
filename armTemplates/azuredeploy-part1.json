@@ -505,6 +505,9 @@
                             },
                             "backendHttpSettings": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gatewayName')), '/backendHttpSettingsCollection/', variables('gatewayBackendHttpSettingsCollectionName'))]"
+                            },
+                            "rewriteRuleSet": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gatewayName')), '/rewriteRuleSets/', variables('gatewayRewriteRuleSetsName'))]"
                             }
                         }
                     },

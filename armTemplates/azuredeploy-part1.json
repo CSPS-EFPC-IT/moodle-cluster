@@ -125,6 +125,7 @@
         "gatewayRedirectConfigurationsName": "HTTP-Redirect",
         "gatewayRequestRoutingRuleHttpName": "HTTP-Rule",
         "gatewayRequestRoutingRuleHttpsName": "HTTPS-Rule",
+        "gatewayRewriteRuleSetsName": "Custom-Rewrite-Rules",
         "gatewaySslCertificateHttpsName": "HTTPS-Certificate",
         "gatewaySubnetAddressPrefix": "[concat(parameters('virtualNetworkAddressBase'), '.0/27')]",
         "gatewaySubnetName": "[concat(variables('resourceNamePrefix'), '-PAZ-AG-SN')]",
@@ -504,6 +505,9 @@
                             },
                             "backendHttpSettings": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gatewayName')), '/backendHttpSettingsCollection/', variables('gatewayBackendHttpSettingsCollectionName'))]"
+                            },
+                            "rewriteRuleSet": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('gatewayName')), '/rewriteRuleSets/', variables('gatewayRewriteRuleSetsName'))]"
                             }
                         }
                     },
@@ -521,7 +525,29 @@
                     }
                 ],
                 "probes": [],
-                "rewriteRuleSets": [],
+                "rewriteRuleSets": [
+                    {
+                        "name": "[variables('gatewayRewriteRuleSetsName')]",
+                        "properties": {
+                            "rewriteRules": [
+                                {
+                                    "ruleSequence": 100,
+                                    "conditions": [],
+                                    "name": "StrictTransportSecurity",
+                                    "actionSet": {
+                                        "requestHeaderConfigurations": [],
+                                        "responseHeaderConfigurations": [
+                                            {
+                                                "headerName": "Strict-Transport-Security",
+                                                "headerValue": "max-age=63072000"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
                 "redirectConfigurations": [
                     {
                         "name": "[variables('gatewayRedirectConfigurationsName')]",
@@ -544,11 +570,21 @@
                     "policyType": "Custom",
                     "minProtocolVersion": "TLSv1_2",
                     "cipherSuites": [
-                        "TLS_RSA_WITH_AES_256_CBC_SHA256",
-                        "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384",
+                        "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+                        "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+                        "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+                        "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
                         "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+                        "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+                        "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+                        "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
                         "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+                        "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384",
                         "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+                        "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
+                        "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+                        "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+                        "TLS_RSA_WITH_AES_256_CBC_SHA256",
                         "TLS_RSA_WITH_AES_128_GCM_SHA256",
                         "TLS_RSA_WITH_AES_128_CBC_SHA256"
                     ]

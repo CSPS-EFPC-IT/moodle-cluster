@@ -8,11 +8,24 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 trap 'echo "\"${last_command}\" command failed with exit code $?."' EXIT
 
+# Helper functions
 function echo_title {
     echo ""
     echo "###############################################################################"
     echo "$1"
     echo "###############################################################################"
+}
+
+function installMoodlePlugin {
+    local pluginTitle=$1
+    local pluginZipFileUrl=$2
+    local pluginDirPath=$3
+
+    local pluginZipFileName=$(basename $pluginZipFileUrl)
+    echo "Downloading \"${pluginTitle}\" plugin zip file..."
+    wget $pluginZipFileUrl
+    echo "Extracting \"${pluginTitle}\" plugin files..."
+    unzip $pluginZipFileName -d $pluginDirPath
 }
 
 ###############################################################################
@@ -318,6 +331,42 @@ echo "Downloading \"${currentPluginName}\" plugin zip file..."
 wget https://moodle.org/plugins/download.php/21001/mod_hvp_moodle39_2020020500.zip
 echo "Extracting \"${currentPluginName}\" plugin files..."
 unzip mod_hvp_moodle39_2020020500.zip -d ${moodleDocumentRootDirPath}/mod
+
+# Ref.: https://moodle.org/plugins/mod_attendance
+currentPluginName="Activities: Attendance"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
+wget https://moodle.org/plugins/download.php/22326/mod_attendance_moodle39_2020082500.zip
+echo "Extracting \"${currentPluginName}\" plugin files..."
+unzip mod_attendance_moodle39_2020082500.zip -d ${moodleDocumentRootDirPath}/mod
+
+# Ref.: https://moodle.org/plugins/block_completion_progress
+currentPluginName="Blocks: Completion Progress"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
+wget https://moodle.org/plugins/download.php/22199/block_completion_progress_moodle39_2020081000.zip
+echo "Extracting \"${currentPluginName}\" plugin files..."
+unzip block_completion_progress_moodle39_2020081000.zip -d ${moodleDocumentRootDirPath}/blocks
+
+# Ref.: https://moodle.org/plugins/availability_coursecompleted
+currentPluginName="Availability conditions: Restriction by course completion"
+echo "Downloading \"${currentPluginName}\" plugin zip file..."
+wget https://moodle.org/plugins/download.php/21684/availability_coursecompleted_moodle39_2020052401.zip
+echo "Extracting \"${currentPluginName}\" plugin files..."
+unzip availability_coursecompleted_moodle39_2020052401.zip -d ${moodleDocumentRootDirPath}/availability/condition
+
+# Ref.: https://moodle.org/plugins/block_configurable_reports
+installMoodlePlugin "Blocks: Configurable Reports" \
+                    "https://moodle.org/plugins/download.php/20829/block_configurable_reports_moodle38_2019122000.zip" \
+                    "${moodleDocumentRootDirPath}/blocks"
+
+# Ref.: https://moodle.org/plugins/tool_coursedates
+installMoodlePlugin "Admin tools: Set course dates" \
+                    "https://moodle.org/plugins/download.php/22237/tool_coursedates_moodle39_2020081400.zip" \
+                    "${moodleDocumentRootDirPath}/admin/tool"
+
+# Ref.: https://moodle.org/plugins/local_mailtest
+installMoodlePlugin "General plugins (Local): Moodle eMail Test" \
+                    "https://moodle.org/plugins/download.php/20592/local_mailtest_moodle38_2019111700.zip" \
+                    "${moodleDocumentRootDirPath}/local"
 
 echo "Updating file ownership on ${moodleDocumentRootDirPath}..."
 chown -R ${apache2User} ${moodleDocumentRootDirPath}

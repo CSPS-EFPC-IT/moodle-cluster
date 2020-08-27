@@ -21,11 +21,12 @@ function installMoodlePlugin {
     local pluginZipFileUrl=$2
     local pluginDirPath=$3
 
-    local pluginZipFileName=$(basename $pluginZipFileUrl)
+    echo "Installation of Moodle \"${pluginTitle}\" plugin."
     echo "Downloading \"${pluginTitle}\" plugin zip file..."
     wget $pluginZipFileUrl
     echo "Extracting \"${pluginTitle}\" plugin files..."
-    unzip $pluginZipFileName -d $pluginDirPath
+    unzip $(basename $pluginZipFileUrl) -d $pluginDirPath
+    echo "Done with \"${pluginTitle}\" plugin installation."
 }
 
 ###############################################################################
@@ -263,95 +264,69 @@ fi
 tar zxfv moodle-3.8.4.tgz -C ${apache2DefaultDocumentRootDirPath}
 
 # Ref.: https://moodle.org/plugins/filter_multilang2
-currentPluginName="Filters: Multi-Language Content (v2)"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/20674/filter_multilang2_moodle38_2019111900.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip filter_multilang2_moodle38_2019111900.zip -d ${moodleDocumentRootDirPath}/filter
+installMoodlePlugin "Filters: Multi-Language Content (v2)" \
+                    "https://moodle.org/plugins/download.php/20674/filter_multilang2_moodle38_2019111900.zip" \
+                    "${moodleDocumentRootDirPath}/filter"
 
 # Ref.: https://moodle.org/plugins/mod_bigbluebuttonbn
-currentPluginName="Activities: BigBlueButtonBN"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/21195/mod_bigbluebuttonbn_moodle38_2019042008.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip mod_bigbluebuttonbn_moodle38_2019042008.zip -d ${moodleDocumentRootDirPath}/mod
+installMoodlePlugin "Activities: BigBlueButtonBN" \
+                    "https://moodle.org/plugins/download.php/21195/mod_bigbluebuttonbn_moodle38_2019042008.zip" \
+                    "${moodleDocumentRootDirPath}/mod"
 
 # Ref.: https://moodle.org/plugins/local_navbarplus
-currentPluginName="General plugins (Local): Navbar Plus"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/21066/local_navbarplus_moodle38_2020021800.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip local_navbarplus_moodle38_2020021800.zip -d ${moodleDocumentRootDirPath}/local
+installMoodlePlugin "General plugins (Local): Navbar Plus" \
+                    "https://moodle.org/plugins/download.php/21066/local_navbarplus_moodle38_2020021800.zip" \
+                    "${moodleDocumentRootDirPath}/local"
 
 # Ref.: https://moodle.org/plugins/block_qrcode
-currentPluginName="Blocks: QR code"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/20732/block_qrcode_moodle38_2019112100.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip block_qrcode_moodle38_2019112100.zip -d ${moodleDocumentRootDirPath}/blocks
+installMoodlePlugin "Blocks: QR code" \
+                    "https://moodle.org/plugins/download.php/20732/block_qrcode_moodle38_2019112100.zip" \
+                    "${moodleDocumentRootDirPath}/blocks"
 
 # Ref.: https://moodle.org/plugins/mod_facetoface
-currentPluginName="Activities: Facetoface"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/18183/mod_facetoface_moodle35_2018110900.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip mod_facetoface_moodle35_2018110900.zip -d ${moodleDocumentRootDirPath}/mod
+installMoodlePlugin "Activities: Facetoface" \
+                    "https://moodle.org/plugins/download.php/18183/mod_facetoface_moodle35_2018110900.zip" \
+                    "${moodleDocumentRootDirPath}/mod"
 
 # Ref.: https://moodle.org/plugins/mod_questionnaire
-currentPluginName="Activities: Questionnaire"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/21849/mod_questionnaire_moodle39_2020011508.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip mod_questionnaire_moodle39_2020011508.zip -d ${moodleDocumentRootDirPath}/mod
+installMoodlePlugin "Activities: Questionnaire" \
+                    "https://moodle.org/plugins/download.php/21849/mod_questionnaire_moodle39_2020011508.zip" \
+                    "${moodleDocumentRootDirPath}/mod"
 
 # Ref.: https://moodle.org/plugins/theme_boost_campus
-currentPluginName="Themes: Boost Campus"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/21973/theme_boost_campus_moodle38_2020071400.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip theme_boost_campus_moodle38_2020071400.zip -d ${moodleDocumentRootDirPath}/theme
+installMoodlePlugin "Themes: Boost Campus" \
+                    "https://moodle.org/plugins/download.php/21973/theme_boost_campus_moodle38_2020071400.zip" \
+                    "${moodleDocumentRootDirPath}/theme"
 
 # Ref.: https://moodle.org/plugins/local_staticpage
-currentPluginName="General plugins (Local): Static Pages"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/21045/local_staticpage_moodle38_2020021400.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip local_staticpage_moodle38_2020021400.zip -d ${moodleDocumentRootDirPath}/local
+installMoodlePlugin "General plugins (Local): Static Pages" \
+                    "https://moodle.org/plugins/download.php/21045/local_staticpage_moodle38_2020021400.zip" \
+                    "${moodleDocumentRootDirPath}/local"
 
 # Ref.: https://moodle.org/plugins/mod_customcert
-currentPluginName="Activities: Custom certificate"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/21208/mod_customcert_moodle38_2019111804.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip mod_customcert_moodle38_2019111804.zip -d ${moodleDocumentRootDirPath}/mod
+installMoodlePlugin "Activities: Custom certificate" \
+                    "https://moodle.org/plugins/download.php/21208/mod_customcert_moodle38_2019111804.zip" \
+                    "${moodleDocumentRootDirPath}/mod"
 
 # Ref.: https://moodle.org/plugins/mod_hvp
-currentPluginName="Activities: Interactive Content – H5P"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/21001/mod_hvp_moodle39_2020020500.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip mod_hvp_moodle39_2020020500.zip -d ${moodleDocumentRootDirPath}/mod
+installMoodlePlugin "Activities: Interactive Content – H5P" \
+                    "https://moodle.org/plugins/download.php/21001/mod_hvp_moodle39_2020020500.zip" \
+                    "${moodleDocumentRootDirPath}/mod"
 
 # Ref.: https://moodle.org/plugins/mod_attendance
-currentPluginName="Activities: Attendance"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/22326/mod_attendance_moodle39_2020082500.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip mod_attendance_moodle39_2020082500.zip -d ${moodleDocumentRootDirPath}/mod
+installMoodlePlugin "Activities: Attendance" \
+                    "https://moodle.org/plugins/download.php/22326/mod_attendance_moodle39_2020082500.zip" \
+                    "${moodleDocumentRootDirPath}/mod"
 
 # Ref.: https://moodle.org/plugins/block_completion_progress
-currentPluginName="Blocks: Completion Progress"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/22199/block_completion_progress_moodle39_2020081000.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip block_completion_progress_moodle39_2020081000.zip -d ${moodleDocumentRootDirPath}/blocks
+installMoodlePlugin "Blocks: Completion Progress" \
+                    "https://moodle.org/plugins/download.php/22199/block_completion_progress_moodle39_2020081000.zip" \
+                    "${moodleDocumentRootDirPath}/blocks"
 
 # Ref.: https://moodle.org/plugins/availability_coursecompleted
-currentPluginName="Availability conditions: Restriction by course completion"
-echo "Downloading \"${currentPluginName}\" plugin zip file..."
-wget https://moodle.org/plugins/download.php/21684/availability_coursecompleted_moodle39_2020052401.zip
-echo "Extracting \"${currentPluginName}\" plugin files..."
-unzip availability_coursecompleted_moodle39_2020052401.zip -d ${moodleDocumentRootDirPath}/availability/condition
+installMoodlePlugin "Availability conditions: Restriction by course completion" \
+                    "https://moodle.org/plugins/download.php/21684/availability_coursecompleted_moodle39_2020052401.zip" \
+                    "${moodleDocumentRootDirPath}/availability/condition"
 
 # Ref.: https://moodle.org/plugins/block_configurable_reports
 installMoodlePlugin "Blocks: Configurable Reports" \

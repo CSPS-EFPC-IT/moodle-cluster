@@ -837,18 +837,6 @@
         {
             "type": "Microsoft.DBforPostgreSQL/servers/configurations",
             "apiVersion": "2017-12-01",
-            "name": "[concat(variables('databaseName'), '/azure.replication_support')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('databaseName'))]"
-            ],
-            "properties": {
-                "value": "OFF",
-                "source": "user-override"
-            }
-        },
-        {
-            "type": "Microsoft.DBforPostgreSQL/servers/configurations",
-            "apiVersion": "2017-12-01",
             "name": "[concat(variables('databaseName'), '/pg_qs.query_capture_mode')]",
             "dependsOn": [
                 "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('databaseName'))]"

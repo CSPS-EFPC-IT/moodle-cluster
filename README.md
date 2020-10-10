@@ -1,4 +1,4 @@
-# ScalableMoodle
+# Moodle Cluster
 Deployed the required resources in Azure Cloud to operate a scalable Moodle cluster.
 
 # Prerequisites

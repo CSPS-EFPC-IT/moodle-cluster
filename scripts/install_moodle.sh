@@ -340,7 +340,7 @@ installMoodlePlugin "Admin tools: Set course dates" \
 
 # Ref.: https://moodle.org/plugins/local_mailtest
 installMoodlePlugin "General plugins (Local): Moodle eMail Test" \
-                    "https://moodle.org/plugins/download.php/20592/local_mailtest_moodle38_2019111700.zip" \
+                    "https://moodle.org/plugins/download.php/22516/local_mailtest_moodle39_2020092000.zip" \
                     "${moodleDocumentRootDirPath}/local"
 
 echo "Updating file ownership on ${moodleDocumentRootDirPath}..."

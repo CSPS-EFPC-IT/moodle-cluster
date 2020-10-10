@@ -17,7 +17,7 @@
         "environmentName": {
             "value": "dev"
         },
-        "gatewaySslCertificatesUri": {
+        "gatewaySslCertificateUri": {
             "value": "https://[Your keyvault name].vault.azure.net/secrets/[your SSL/TLS Certificate Name]/[your SSL/TLS certificat Current version ID]"
         },
         "gatewayUserAssignedIdentity": {

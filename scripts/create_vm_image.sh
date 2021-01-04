@@ -34,6 +34,7 @@ declare -A parameters=( [applicationFqdn]= \
                         [resourceGroupName]= \
                         [smtpRelayFqdn]= \
                         [smtpRelayPrivateIp]= \
+                        [virtualMachineTags]= \
                         [virtualNetworkName]= \
                         [vmImageName]= \
                         [vmName]= \
@@ -99,7 +100,8 @@ az vm create \
     --subnet "${parameters[applicationSubnetName]}" \
     --vnet-name "${parameters[virtualNetworkName]}" \
     --nsg "${parameters[applicationNetworkSecurityGroupName]}" \
-    --public-ip-address ""
+    --public-ip-address "" \
+    --tags "${parameters[virtualMachineTags]}"
 
 ################################################################################
 echo "Running VM extension to install moodle..."

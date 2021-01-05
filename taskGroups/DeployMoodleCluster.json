@@ -99,7 +99,7 @@
                 "scriptLocation": "scriptPath",
                 "scriptPath": "$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/scripts/create_vm_image.sh",
                 "inlineScript": "",
-                "args": "-applicationFqdn \"$(applicationFqdn)\" -applicationNetworkSecurityGroupName \"$(ArmOutputs1.applicationNetworkSecurityGroupName)\" -applicationSubnetName \"$(ArmOutputs1.applicationSubnetName)\" -databaseAdminPassword \"$(databaseAdminPassword)\" -databaseAdminUsername \"$(databaseAdminUsername)\" -databaseApplicationDatabaseName \"$(ArmOutputs1.databaseApplicationDatabaseName)\" -databaseMoodlePassword \"$(databaseMoodlePassword)\" -databaseMoodleUsername \"$(databaseMoodleUsername)\" -databaseFqdn \"$(ArmOutputs1.databaseFqdn)\" -databaseName \"$(ArmOutputs1.databaseName)\" -fileRepositoryUri \"$(fileRepositoryUri)\" -moodleAdminEmail \"$(moodleAdminEmail)\" -moodleAdminPassword \"$(moodleAdminPassword)\" -moodleAdminUsername \"$(moodleAdminUsername)\" -moodleShareName \"$(ArmOutputs1.moodleShareName)\" -moodleStorageAccountFilePrimaryEndPoint \"$(ArmOutputs1.moodleStorageAccountFilePrimaryEndPoint)\" -moodleStorageAccountKey \"$(ArmOutputs1.moodleStorageAccountKey)\" -moodleStorageAccountName \"$(ArmOutputs1.moodleStorageAccountName)\" -moodleUpgradeKey \"$(moodleUpgradeKey)\" -redisHostName \"$(ArmOutputs1.redisHostName)\" -redisName \"$(ArmOutputs1.redisName)\" -redisPrimaryKey \"$(ArmOutputs1.redisPrimaryKey)\" -resourceGroupName \"$(resourceGroupName)\" -smtpRelayFqdn \"$(smtpRelayFqdn)\" -smtpRelayPrivateIp \"$(smtpRelayPrivateIp)\" -virtualNetworkName \"$(ArmOutputs1.virtualNetworkName)\" -vmImageName \"$(vmImageName)\" -vmName \"$(vmName)\" -webServerAdminPassword \"$(webServerAdminPassword)\" -webServerAdminUsername \"$(webServerAdminUsername)\"",
+                "args": "-applicationFqdn \"$(applicationFqdn)\" -applicationNetworkSecurityGroupName \"$(ArmOutputs1.applicationNetworkSecurityGroupName)\" -applicationSubnetName \"$(ArmOutputs1.applicationSubnetName)\" -databaseAdminPassword \"$(databaseAdminPassword)\" -databaseAdminUsername \"$(databaseAdminUsername)\" -databaseApplicationDatabaseName \"$(ArmOutputs1.databaseApplicationDatabaseName)\" -databaseMoodlePassword \"$(databaseMoodlePassword)\" -databaseMoodleUsername \"$(databaseMoodleUsername)\" -databaseFqdn \"$(ArmOutputs1.databaseFqdn)\" -databaseName \"$(ArmOutputs1.databaseName)\" -fileRepositoryUri \"$(fileRepositoryUri)\" -moodleAdminEmail \"$(moodleAdminEmail)\" -moodleAdminPassword \"$(moodleAdminPassword)\" -moodleAdminUsername \"$(moodleAdminUsername)\" -moodleShareName \"$(ArmOutputs1.moodleShareName)\" -moodleStorageAccountFilePrimaryEndPoint \"$(ArmOutputs1.moodleStorageAccountFilePrimaryEndPoint)\" -moodleStorageAccountKey \"$(ArmOutputs1.moodleStorageAccountKey)\" -moodleStorageAccountName \"$(ArmOutputs1.moodleStorageAccountName)\" -moodleUpgradeKey \"$(moodleUpgradeKey)\" -redisHostName \"$(ArmOutputs1.redisHostName)\" -redisName \"$(ArmOutputs1.redisName)\" -redisPrimaryKey \"$(ArmOutputs1.redisPrimaryKey)\" -resourceGroupName \"$(resourceGroupName)\" -smtpRelayFqdn \"$(smtpRelayFqdn)\" -smtpRelayPrivateIp \"$(smtpRelayPrivateIp)\" -virtualMachineTags \"$(virtualMachineTags)\" -virtualNetworkName \"$(ArmOutputs1.virtualNetworkName)\" -vmImageName \"$(vmImageName)\" -vmName \"$(vmName)\" -webServerAdminPassword \"$(webServerAdminPassword)\" -webServerAdminUsername \"$(webServerAdminUsername)\"",
                 "addSpnToEnvironment": "false",
                 "useGlobalConfig": "false",
                 "cwd": "",
@@ -227,7 +227,7 @@
         "Agent",
         "DeploymentGroup"
     ],
-    "revision": 3,
+    "revision": 4,
     "createdBy": {
         "displayName": "Patrick Messier",
         "id": "9d7984b5-5f92-6bd6-bfea-23da0d70f9a6",
@@ -239,7 +239,7 @@
         "id": "9d7984b5-5f92-6bd6-bfea-23da0d70f9a6",
         "uniqueName": "Patrick.Messier@csps-efpc.gc.ca"
     },
-    "modifiedOn": "2020-10-26T19:19:47.607Z",
+    "modifiedOn": "2021-01-04T20:57:59.190Z",
     "comment": "",
     "id": "52073f27-c84e-488e-a52d-fd3f311ead58",
     "name": "Deploy Moodle Cluster",
@@ -594,6 +594,18 @@
             "required": true,
             "type": "string",
             "helpMarkDown": "The virtual network IP address prefix. Format is '255.255.255'.",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "virtualMachineTags",
+            "label": "virtualMachineTags",
+            "defaultValue": "$(virtualMachineTags)",
+            "required": true,
+            "type": "object",
+            "helpMarkDown": "The virtual machine optional tag key-value pairs. Format is \"key1=value1 key2=value2\".",
             "groupName": ""
         },
         {

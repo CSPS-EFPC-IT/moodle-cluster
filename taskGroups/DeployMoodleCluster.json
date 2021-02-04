@@ -30,7 +30,7 @@
                 "password": "",
                 "outputVariable": "",
                 "deploymentName": "Moodle-Cluster_Deployment_Part_1",
-                "deploymentOutputs": "ArmOutputs1",
+                "deploymentOutputs": "armOutput1",
                 "addSpnToEnvironment": "false"
             },
             "task": {
@@ -41,25 +41,19 @@
         },
         {
             "environment": {},
-            "displayName": "ARM Outputs",
+            "displayName": "Task group: Arm Outputs",
             "alwaysRun": false,
             "continueOnError": false,
             "condition": "succeeded()",
             "enabled": true,
             "timeoutInMinutes": 0,
             "inputs": {
-                "ConnectedServiceNameSelector": "ConnectedServiceNameARM",
-                "ConnectedServiceNameARM": "$(serviceConnectionName)",
-                "resourceGroupName": "$(resourceGroupName)",
-                "prefix": "ArmOutputs1.",
-                "outputNames": "",
-                "whenLastDeploymentIsFailed": "fail",
-                "deploymentNameFilter": ""
+              "armDeploymentOutputs": "$(armOutput1)"
             },
             "task": {
-                "id": "584bcff2-3353-4f11-872b-6ba01267a972",
-                "versionSpec": "5.*",
-                "definitionType": "task"
+              "id": "3ec489be-8fe0-480b-a2d6-7b08edfe1e5d",
+              "versionSpec": "1.*",
+              "definitionType": "metaTask"
             }
         },
         {
@@ -74,7 +68,7 @@
                 "targetType": "inline",
                 "filePath": "",
                 "arguments": "",
-                "script": "echo 'Computing local variables...'\nVM_NAME=\"${ARMOUTPUTS1_RESOURCENAMEPREFIX}-$(date +'%Y%m%dT%H%M%S%Z')-VM\"\necho \"VM_NAME=$VM_NAME\"\nVM_IMAGE_NAME=\"${VM_NAME}-Image\"\necho \"VM_IMAGE_NAME=$VM_IMAGE_NAME\"\nif [[ -z \"$CUSTOMAPPLICATIONFQDN\" ]]; then\n    APPLICATION_FQDN=\"$ARMOUTPUTS1_GATEWAYPUBLICIPFQDN\"\nelse\n    APPLICATION_FQDN=\"$CUSTOMAPPLICATIONFQDN\"\nfi\necho \"APPLICATION_FQDN=$APPLICATION_FQDN\"\n\necho 'Setting new pipeline variables...'\necho \"##vso[task.setvariable variable=vmName;]$VM_NAME\"\necho \"##vso[task.setvariable variable=vmImageName;]$VM_IMAGE_NAME\"\necho \"##vso[task.setvariable variable=applicationFqdn;]$APPLICATION_FQDN\"\necho 'Done'",
+                "script": "echo 'Computing local variables...'\nVM_NAME=\"${RESOURCENAMEPREFIX}-$(date +'%Y%m%dT%H%M%S%Z')-VM\"\necho \"VM_NAME=${VM_NAME}\"\nVM_IMAGE_NAME=\"${VM_NAME}-Image\"\necho \"VM_IMAGE_NAME=${VM_IMAGE_NAME}\"\nif [[ -z \"${CUSTOMAPPLICATIONFQDN}\" ]]; then\n    APPLICATION_FQDN=\"${GATEWAYPUBLICIPFQDN}\"\nelse\n    APPLICATION_FQDN=\"${CUSTOMAPPLICATIONFQDN}\"\nfi\necho \"APPLICATION_FQDN=${APPLICATION_FQDN}\"\n\necho 'Setting new pipeline variables...'\necho \"##vso[task.setvariable variable=vmName;]${VM_NAME}\"\necho \"##vso[task.setvariable variable=vmImageName;]${VM_IMAGE_NAME}\"\necho \"##vso[task.setvariable variable=applicationFqdn;]${APPLICATION_FQDN}\"\necho 'Done'",
                 "workingDirectory": "",
                 "failOnStderr": "true",
                 "noProfile": "true",
@@ -99,7 +93,7 @@
                 "scriptLocation": "scriptPath",
                 "scriptPath": "$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/scripts/create_vm_image.sh",
                 "inlineScript": "",
-                "args": "-applicationFqdn \"$(applicationFqdn)\" -applicationNetworkSecurityGroupName \"$(ArmOutputs1.applicationNetworkSecurityGroupName)\" -applicationSubnetName \"$(ArmOutputs1.applicationSubnetName)\" -databaseAdminPassword \"$(databaseAdminPassword)\" -databaseAdminUsername \"$(databaseAdminUsername)\" -databaseApplicationDatabaseName \"$(ArmOutputs1.databaseApplicationDatabaseName)\" -databaseMoodlePassword \"$(databaseMoodlePassword)\" -databaseMoodleUsername \"$(databaseMoodleUsername)\" -databaseFqdn \"$(ArmOutputs1.databaseFqdn)\" -databaseName \"$(ArmOutputs1.databaseName)\" -fileRepositoryUri \"$(fileRepositoryUri)\" -moodleAdminEmail \"$(moodleAdminEmail)\" -moodleAdminPassword \"$(moodleAdminPassword)\" -moodleAdminUsername \"$(moodleAdminUsername)\" -moodleShareName \"$(ArmOutputs1.moodleShareName)\" -moodleStorageAccountFilePrimaryEndPoint \"$(ArmOutputs1.moodleStorageAccountFilePrimaryEndPoint)\" -moodleStorageAccountKey \"$(ArmOutputs1.moodleStorageAccountKey)\" -moodleStorageAccountName \"$(ArmOutputs1.moodleStorageAccountName)\" -moodleUpgradeKey \"$(moodleUpgradeKey)\" -redisHostName \"$(ArmOutputs1.redisHostName)\" -redisName \"$(ArmOutputs1.redisName)\" -redisPrimaryKey \"$(ArmOutputs1.redisPrimaryKey)\" -resourceGroupName \"$(resourceGroupName)\" -smtpRelayFqdn \"$(smtpRelayFqdn)\" -smtpRelayPrivateIp \"$(smtpRelayPrivateIp)\" -virtualMachineTags \"$(virtualMachineTags)\" -virtualNetworkName \"$(ArmOutputs1.virtualNetworkName)\" -vmImageName \"$(vmImageName)\" -vmName \"$(vmName)\" -webServerAdminPassword \"$(webServerAdminPassword)\" -webServerAdminUsername \"$(webServerAdminUsername)\"",
+                "args": "-applicationFqdn \"$(applicationFqdn)\" -applicationNetworkSecurityGroupName \"$(applicationNetworkSecurityGroupName)\" -applicationSubnetName \"$(applicationSubnetName)\" -databaseAdminPassword \"$(databaseAdminPassword)\" -databaseAdminUsername \"$(databaseAdminUsername)\" -databaseApplicationDatabaseName \"$(databaseApplicationDatabaseName)\" -databaseMoodlePassword \"$(databaseMoodlePassword)\" -databaseMoodleUsername \"$(databaseMoodleUsername)\" -databaseFqdn \"$(databaseFqdn)\" -databaseName \"$(databaseName)\" -fileRepositoryUri \"$(fileRepositoryUri)\" -moodleAdminEmail \"$(moodleAdminEmail)\" -moodleAdminPassword \"$(moodleAdminPassword)\" -moodleAdminUsername \"$(moodleAdminUsername)\" -moodleShareName \"$(moodleShareName)\" -moodleStorageAccountFilePrimaryEndPoint \"$(moodleStorageAccountFilePrimaryEndPoint)\" -moodleStorageAccountKey \"$(moodleStorageAccountKey)\" -moodleStorageAccountName \"$(moodleStorageAccountName)\" -moodleUpgradeKey \"$(moodleUpgradeKey)\" -redisHostName \"$(redisHostName)\" -redisName \"$(redisName)\" -redisPrimaryKey \"$(redisPrimaryKey)\" -resourceGroupName \"$(resourceGroupName)\" -smtpRelayFqdn \"$(smtpServerFqdn)\" -smtpRelayPrivateIp \"$(smtpServerPrivateIp)\" -virtualMachineTags \"$(virtualMachineTags)\" -virtualNetworkName \"$(virtualNetworkName)\" -vmImageName \"$(vmImageName)\" -vmName \"$(vmName)\" -webServerAdminPassword \"$(webServerAdminPassword)\" -webServerAdminUsername \"$(webServerAdminUsername)\"",
                 "addSpnToEnvironment": "false",
                 "useGlobalConfig": "false",
                 "cwd": "",
@@ -129,7 +123,7 @@
                 "csmParametersFileLink": "",
                 "csmFile": "$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/armTemplates/azuredeploy-part2.json",
                 "csmParametersFile": "",
-                "overrideParameters": "-applicationNetworkSecurityGroupName \"$(ArmOutputs1.applicationNetworkSecurityGroupName)\" -applicationSubnetName \"$(ArmOutputs1.applicationSubnetName)\" -corporateInternetGatewayIpAddress \"$(corporateInternetGatewayIpAddress)\" -fileRepositoryUri \"$(fileRepositoryUri)\" -gatewayBackendAddressPoolName \"$(ArmOutputs1.gatewayBackendAddressPoolName)\" -gatewayName \"$(ArmOutputs1.gatewayName)\" -location \"$(location)\" -moodleShareName \"$(ArmOutputs1.moodleShareName)\" -resourceNamePrefix \"$(ArmOutputs1.resourceNamePrefix)\" -resourceTags $(resourceTags) -storageAccountNamePrefix \"$(ArmOutputs1.storageAccountNamePrefix)\" -virtualNetworkName \"$(ArmOutputs1.virtualNetworkName)\" -vmssVmProfileImageReferenceName \"$(vmImageName)\" -webServerAdminPassword \"$(webServerAdminPassword)\" -webServerAdminUsername \"$(webServerAdminUsername)\"",
+                "overrideParameters": "-applicationNetworkSecurityGroupName \"$(applicationNetworkSecurityGroupName)\" -applicationSubnetName \"$(applicationSubnetName)\" -corporateInternetGatewayIpAddress \"$(corporateInternetGatewayIpAddress)\" -fileRepositoryUri \"$(fileRepositoryUri)\" -gatewayBackendAddressPoolName \"$(gatewayBackendAddressPoolName)\" -gatewayName \"$(gatewayName)\" -location \"$(location)\" -moodleShareName \"$(moodleShareName)\" -resourceNamePrefix \"$(resourceNamePrefix)\" -resourceTags $(resourceTags) -storageAccountNamePrefix \"$(storageAccountNamePrefix)\" -virtualNetworkName \"$(virtualNetworkName)\" -vmssVmProfileImageReferenceName \"$(vmImageName)\" -webServerAdminPassword \"$(webServerAdminPassword)\" -webServerAdminUsername \"$(webServerAdminUsername)\"",
                 "deploymentMode": "Incremental",
                 "enableDeploymentPrerequisites": "None",
                 "deploymentGroupEndpoint": "",
@@ -141,7 +135,7 @@
                 "password": "",
                 "outputVariable": "",
                 "deploymentName": "Moodle-Cluster_Deployment_Part_2",
-                "deploymentOutputs": "ArmOutputs2",
+                "deploymentOutputs": "armOutput2",
                 "addSpnToEnvironment": "false"
             },
             "task": {
@@ -152,25 +146,19 @@
         },
         {
             "environment": {},
-            "displayName": "ARM Outputs",
+            "displayName": "Task group: Arm Outputs",
             "alwaysRun": false,
             "continueOnError": false,
             "condition": "succeeded()",
             "enabled": true,
             "timeoutInMinutes": 0,
             "inputs": {
-                "ConnectedServiceNameSelector": "ConnectedServiceNameARM",
-                "ConnectedServiceNameARM": "$(serviceConnectionName)",
-                "resourceGroupName": "$(resourceGroupName)",
-                "prefix": "ArmOutputs2.",
-                "outputNames": "",
-                "whenLastDeploymentIsFailed": "fail",
-                "deploymentNameFilter": ""
+              "armDeploymentOutputs": "$(armOutput2)"
             },
             "task": {
-                "id": "584bcff2-3353-4f11-872b-6ba01267a972",
-                "versionSpec": "5.*",
-                "definitionType": "task"
+              "id": "3ec489be-8fe0-480b-a2d6-7b08edfe1e5d",
+              "versionSpec": "1.*",
+              "definitionType": "metaTask"
             }
         },
         {
@@ -185,7 +173,7 @@
                 "connectedServiceNameARM": "$(serviceConnectionName)",
                 "scriptLocation": "inlineScript",
                 "scriptPath": "",
-                "inlineScript": "az vmss update-instances --instance-ids \"*\" --name \"$(ArmOutputs2.vmssName)\" --resource-group \"$(resourceGroupName)\"",
+                "inlineScript": "az vmss update-instances --instance-ids \"*\" --name \"$(vmssName)\" --resource-group \"$(resourceGroupName)\"",
                 "args": "",
                 "addSpnToEnvironment": "false",
                 "useGlobalConfig": "false",
@@ -200,14 +188,14 @@
         },
         {
             "environment": {},
-            "displayName": "Task group: SMTP Peering - $(ArmOutputs1.virtualNetworkName) <--> $(smtpVirtualNetworkName)",
+            "displayName": "Task group: SMTP Peering - $(virtualNetworkName) <--> $(smtpVirtualNetworkName)",
             "alwaysRun": true,
             "continueOnError": true,
             "condition": "succeededOrFailed()",
             "enabled": true,
             "timeoutInMinutes": 0,
             "inputs": {
-                "Vnet1_Name": "$(ArmOutputs1.virtualNetworkName)",
+                "Vnet1_Name": "$(virtualNetworkName)",
                 "Vnet1_RGName": "$(resourceGroupName)",
                 "Vnet1_ServiceConnection": "$(serviceConnectionName)",
                 "Vnet1_SubID": "$(subscriptionId)",
@@ -227,22 +215,22 @@
         "Agent",
         "DeploymentGroup"
     ],
-    "revision": 4,
+    "revision": 2,
     "createdBy": {
         "displayName": "Patrick Messier",
         "id": "9d7984b5-5f92-6bd6-bfea-23da0d70f9a6",
         "uniqueName": "Patrick.Messier@csps-efpc.gc.ca"
     },
-    "createdOn": "2020-10-22T18:36:02.767Z",
+    "createdOn": "2021-01-04T21:14:49.017Z",
     "modifiedBy": {
         "displayName": "Patrick Messier",
         "id": "9d7984b5-5f92-6bd6-bfea-23da0d70f9a6",
         "uniqueName": "Patrick.Messier@csps-efpc.gc.ca"
     },
-    "modifiedOn": "2021-01-04T20:57:59.190Z",
+    "modifiedOn": "2021-01-04T22:52:29.163Z",
     "comment": "",
-    "id": "52073f27-c84e-488e-a52d-fd3f311ead58",
-    "name": "Deploy Moodle Cluster",
+    "id": "c377a041-3f1b-4b5e-873f-b592ca699a2e",
+    "name": "Deploy Moodle Cluster - New",
     "version": {
         "major": 1,
         "minor": 0,
@@ -250,7 +238,7 @@
         "isTest": false
     },
     "iconUrl": "https://cdn.vsassets.io/v/M168_20200506.1/_content/icon-meta-task.png",
-    "friendlyName": "Deploy Moodle Cluster",
+    "friendlyName": "Deploy Moodle Cluster - New",
     "description": "Deploys all Azure resources required to run Moodle in a VMSS.",
     "category": "Deploy",
     "definitionType": "metaTask",
@@ -502,21 +490,21 @@
             "aliases": [],
             "options": {},
             "properties": {},
-            "name": "smtpRelayFqdn",
-            "label": "smtpRelayFqdn",
-            "defaultValue": "$(smtpRelayFqdn)",
+            "name": "smtpServerFqdn",
+            "label": "smtpServerFqdn",
+            "defaultValue": "$(smtpServerFqdn)",
             "required": true,
             "type": "string",
-            "helpMarkDown": "The SMTP Relay Server Fully Qualified Domain Name.",
+            "helpMarkDown": "The SMTP Server Fully Qualified Domain Name.",
             "groupName": ""
         },
         {
             "aliases": [],
             "options": {},
             "properties": {},
-            "name": "smtpRelayPrivateIp",
-            "label": "smtpRelayPrivateIp",
-            "defaultValue": "$(smtpRelayPrivateIp)",
+            "name": "smtpServerPrivateIp",
+            "label": "smtpServerPrivateIp",
+            "defaultValue": "$(smtpServerPrivateIp)",
             "required": true,
             "type": "string",
             "helpMarkDown": "The SMTP Relay Server Private IP address.",
@@ -588,24 +576,24 @@
             "aliases": [],
             "options": {},
             "properties": {},
-            "name": "virtualNetworkAddressBase",
-            "label": "virtualNetworkAddressBase",
-            "defaultValue": "$(virtualNetworkAddressBase)",
-            "required": true,
-            "type": "string",
-            "helpMarkDown": "The virtual network IP address prefix. Format is '255.255.255'.",
-            "groupName": ""
-        },
-        {
-            "aliases": [],
-            "options": {},
-            "properties": {},
             "name": "virtualMachineTags",
             "label": "virtualMachineTags",
             "defaultValue": "$(virtualMachineTags)",
             "required": true,
             "type": "object",
             "helpMarkDown": "The virtual machine optional tag key-value pairs. Format is \"key1=value1 key2=value2\".",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "virtualNetworkAddressBase",
+            "label": "virtualNetworkAddressBase",
+            "defaultValue": "$(virtualNetworkAddressBase)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "The virtual network IP address prefix. Format is '255.255.255'.",
             "groupName": ""
         },
         {
@@ -636,7 +624,7 @@
     "satisfies": [],
     "sourceDefinitions": [],
     "dataSourceBindings": [],
-    "instanceNameFormat": "Task group: Deploy Moodle Cluster",
+    "instanceNameFormat": "Task group: Deploy Moodle Cluster - New",
     "preJobExecution": {},
     "execution": {},
     "postJobExecution": {}

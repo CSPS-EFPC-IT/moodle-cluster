@@ -1246,7 +1246,7 @@
             "value": "[variables('moodleShareName')]"
         },
         "moodleStorageAccountKey": {
-            "type": "securestring",
+            "type": "string",
             "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('moodleStorageAccountName')), '2019-04-01').keys[0].value]"
         },
         "moodleStorageAccountName": {
@@ -1266,7 +1266,7 @@
             "value": "[variables('redisName')]"
         },
         "redisPrimaryKey": {
-            "type": "securestring",
+            "type": "string",
             "value": "[listKeys(resourceId('Microsoft.Cache/Redis', variables('redisName')), '2019-07-01').primarykey]"
         },
         "resourceNamePrefix": {
